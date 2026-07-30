@@ -1,0 +1,197 @@
+.layout {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 1rem;
+  align-items: start;
+}
+
+.form {
+  background-color: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: var(--radius);
+  box-shadow: var(--sombra);
+  padding: 1.4rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.formTitulo {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--vinho);
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--borda);
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  flex: 1;
+}
+
+.campo label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--cinza);
+}
+
+.campo input,
+.campo select,
+.campo textarea {
+  border: 1px solid var(--borda);
+  border-radius: 9px;
+  padding: 0.65rem 0.8rem;
+  background-color: var(--branco);
+  color: var(--texto);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  width: 100%;
+  resize: vertical;
+}
+
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus {
+  border-color: var(--vermelho);
+  box-shadow: 0 0 0 3px rgba(197, 34, 51, 0.12);
+}
+
+.campo input::placeholder,
+.campo textarea::placeholder {
+  color: #a1a1aa;
+}
+
+.trajeto {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.seta {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #fbeaec;
+  color: var(--vermelho-forte);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-bottom: 0.25rem;
+}
+
+.botaoPrimario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: var(--vermelho);
+  color: var(--branco);
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.75rem 1.3rem;
+  border-radius: 10px;
+  transition: background-color 0.15s ease;
+  margin-top: 0.25rem;
+}
+
+.botaoPrimario:hover {
+  background-color: var(--vermelho-forte);
+}
+
+.historico {
+  background-color: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: var(--radius);
+  box-shadow: var(--sombra);
+  padding: 1.4rem 1.5rem;
+}
+
+.histTitulo {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+}
+
+.evento {
+  display: flex;
+  gap: 0.9rem;
+  padding-bottom: 1.25rem;
+  position: relative;
+}
+
+.evento:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 14px;
+  bottom: 0;
+  width: 2px;
+  background-color: var(--cinza-claro);
+}
+
+.ponto {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: var(--vermelho);
+  margin-top: 4px;
+  flex-shrink: 0;
+  z-index: 1;
+}
+
+.eventoBody {
+  flex: 1;
+}
+
+.eventoTopo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.eventoItem {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--preto);
+}
+
+.eventoData {
+  font-size: 0.76rem;
+  color: var(--texto-suave);
+  flex-shrink: 0;
+}
+
+.trajetoTexto {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.83rem;
+  color: var(--cinza);
+  margin: 0.25rem 0;
+}
+
+.eventoMeta {
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+}
+
+.mono {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  color: var(--vinho);
+  font-weight: 600;
+}
+
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}

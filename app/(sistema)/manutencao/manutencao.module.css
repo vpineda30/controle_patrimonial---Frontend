@@ -1,0 +1,184 @@
+.botaoPrimario {
+  background-color: var(--vermelho);
+  color: var(--branco);
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 0.65rem 1.1rem;
+  border-radius: 10px;
+  transition: background-color 0.15s ease;
+}
+
+.botaoPrimario:hover {
+  background-color: var(--vermelho-forte);
+}
+
+.resumo {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.resumoCard {
+  background-color: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: var(--radius);
+  box-shadow: var(--sombra);
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.resumoIcon {
+  width: 46px;
+  height: 46px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.azul {
+  background-color: #e6f0fb;
+  color: #1e5eb3;
+}
+
+.laranja {
+  background-color: #fdf1e3;
+  color: #b45309;
+}
+
+.vermelho {
+  background-color: #fbeaec;
+  color: var(--vermelho-forte);
+}
+
+.resumoValor {
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--preto);
+  line-height: 1.1;
+}
+
+.resumoLabel {
+  font-size: 0.83rem;
+  color: var(--texto-suave);
+}
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.card {
+  background-color: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: var(--radius);
+  box-shadow: var(--sombra);
+  padding: 1.25rem 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.cardEsq {
+  flex: 1;
+}
+
+.cardTopo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.cardItem {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.cardDesc {
+  font-size: 0.86rem;
+  color: var(--cinza);
+  margin-bottom: 0.65rem;
+}
+
+.cardMeta {
+  display: flex;
+  gap: 1.1rem;
+  flex-wrap: wrap;
+}
+
+.cardMeta span {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.79rem;
+  color: var(--texto-suave);
+}
+
+.mono {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  color: var(--vinho) !important;
+  font-weight: 600;
+}
+
+.tag {
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 0.25rem 0.65rem;
+  border-radius: 99px;
+}
+
+.tagManutencao {
+  background-color: #e6f0fb;
+  color: #1e5eb3;
+}
+
+.tagDanificado {
+  background-color: #fdf1e3;
+  color: #b45309;
+}
+
+.tagExtraviado {
+  background-color: #fbeaec;
+  color: var(--vermelho-forte);
+}
+
+.botaoDetalhe {
+  border: 1px solid var(--borda);
+  background-color: var(--branco);
+  border-radius: 9px;
+  padding: 0.55rem 1rem;
+  font-size: 0.83rem;
+  font-weight: 500;
+  color: var(--cinza);
+  flex-shrink: 0;
+}
+
+.botaoDetalhe:hover {
+  border-color: var(--vermelho);
+  color: var(--vermelho);
+}
+
+@media (max-width: 900px) {
+  .resumo {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .botaoDetalhe {
+    width: 100%;
+  }
+}

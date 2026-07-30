@@ -1,0 +1,213 @@
+.botaoPrimario {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--vermelho);
+  color: var(--branco);
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 0.65rem 1.1rem;
+  border-radius: 10px;
+  transition: background-color 0.15s ease;
+}
+
+.botaoPrimario:hover {
+  background-color: var(--vermelho-forte);
+}
+
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.card {
+  background-color: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: var(--sombra);
+}
+
+.cardIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background-color: #fbeaec;
+  color: var(--vermelho-forte);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cardLabel {
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+.cardValor {
+  font-family: var(--font-poppins), sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--preto);
+  line-height: 1.2;
+  margin-top: 0.5rem;
+}
+
+.cardDetalhe {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.76rem;
+  color: var(--vermelho-forte);
+  margin-top: 0.15rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 1rem;
+}
+
+.painel {
+  background-color: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.4rem;
+  box-shadow: var(--sombra);
+}
+
+.painelTopo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.painelTitulo {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin-bottom: 1.2rem;
+  margin-top: 1rem;
+}
+
+.verMais {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--vermelho);
+}
+
+.verMais:hover {
+  color: var(--vermelho-forte);
+}
+
+.tabelaWrap {
+  overflow-x: auto;
+}
+
+.tabela {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.tabela th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--vermelho-medio);
+  font-size: 0.74rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--borda);
+}
+
+.tabela td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #f0f0f1;
+  color: var(--texto);
+}
+
+.tabela tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.itemNome {
+  font-weight: 500;
+  color: var(--preto);
+}
+
+.mono {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+.data {
+  color: var(--texto-suave);
+}
+
+.listaAmbientes {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.ambienteItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.ambienteInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.ambienteNome {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--preto);
+}
+
+.ambienteQtd {
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+}
+
+.barra {
+  height: 8px;
+  border-radius: 99px;
+  background-color: var(--cinza-claro);
+  overflow: hidden;
+}
+
+.barraFill {
+  height: 100%;
+  border-radius: 99px;
+  background-color: var(--vermelho);
+}
+
+@media (max-width: 1100px) {
+  .indicadores {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .indicadores {
+    grid-template-columns: 1fr;
+  }
+}

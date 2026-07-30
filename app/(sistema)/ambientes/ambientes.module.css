@@ -1,0 +1,134 @@
+.botaoPrimario {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--vermelho);
+  color: var(--branco);
+  font-weight: 600;
+  font-size: 0.88rem;
+  padding: 0.65rem 1.1rem;
+  border-radius: 10px;
+  transition: background-color 0.15s ease;
+}
+
+.botaoPrimario:hover {
+  background-color: var(--vermelho-forte);
+}
+
+.filtros {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.busca {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  padding: 0 0.85rem;
+  flex: 1;
+  min-width: 220px;
+  color: var(--texto-suave);
+}
+
+.busca input {
+  border: none;
+  outline: none;
+  padding: 0.65rem 0;
+  width: 100%;
+  background: transparent;
+  color: var(--texto);
+}
+
+.select {
+  border: 1px solid var(--borda);
+  background-color: var(--branco);
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+  color: var(--texto);
+  outline: none;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.card {
+  background-color: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  box-shadow: var(--sombra);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+  display: block;
+}
+
+.card:hover {
+  border-color: var(--vermelho);
+  transform: translateY(-2px);
+}
+
+.cardTopo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.9rem;
+}
+
+.icone {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background-color: #fbeaec;
+  color: var(--vermelho-forte);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--vinho);
+  background-color: #f7e7ea;
+  padding: 0.25rem 0.6rem;
+  border-radius: 99px;
+}
+
+.nome {
+  font-size: 1.02rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--texto-suave);
+}
+
+@media (max-width: 1000px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 620px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

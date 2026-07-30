@@ -1,0 +1,157 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: var(--sidebar-largura);
+  height: 100vh;
+  background-color: var(--branco);
+  color: var(--texto);
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem 1rem;
+  border-right: 2px solid var(--vermelho);
+  z-index: 50;
+}
+
+.brand {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.5rem 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--borda);
+  margin-bottom: 1.25rem;
+}
+
+.logo {
+  display: inline-block;
+  align-self: flex-start;
+  background-color: var(--vermelho-forte);
+  color: var(--branco);
+  font-family: var(--font-poppins), sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  font-size: 0.95rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 8px;
+}
+
+.brandSub {
+  font-size: 0.78rem;
+  color: var(--texto-suave);
+  letter-spacing: 0.02em;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--texto-suave);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.link:hover {
+  background-color: rgba(197, 34, 51, 0.08);
+  color: var(--vermelho);
+}
+
+.linkAtivo {
+  background-color: var(--vermelho);
+  color: var(--branco);
+}
+
+.linkAtivo:hover {
+  background-color: var(--vermelho);
+  color: var(--branco);
+}
+
+.rodape {
+  border-top: 1px solid var(--borda);
+  padding-top: 1rem;
+  margin-top: 1rem;
+}
+
+.usuario {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0.5rem;
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background-color: var(--vermelho-forte);
+  color: var(--branco);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.usuarioNome {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--preto);
+}
+
+.usuarioCargo {
+  font-size: 0.75rem;
+  color: var(--texto-suave);
+}
+
+.toggle {
+  display: none;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 60;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background-color: var(--vermelho);
+  color: var(--branco);
+  align-items: center;
+  justify-content: center;
+}
+
+.overlay {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .toggle {
+    display: flex;
+  }
+
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .open {
+    transform: translateX(0);
+  }
+
+  .overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    z-index: 40;
+  }
+}
