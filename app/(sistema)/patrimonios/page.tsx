@@ -1,42 +1,48 @@
+'use client'
+
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Search, Plus, Filter } from 'lucide-react'
 import { PageHeader } from '@/components/page-header'
 import styles from './patrimonios.module.css'
-
-type Situacao = 'Ativo' | 'Manutenção' | 'Extraviado'
-
-const itens: {
-  tomb: string
-  nome: string
-  categoria: string
-  ambiente: string
-  aquisicao: string
-  situacao: Situacao
-}[] = [
-  { tomb: 'PT-004512', nome: 'Notebook Dell Latitude 5440', categoria: 'Informática', ambiente: 'Lab. Informática 2', aquisicao: '12/03/2024', situacao: 'Ativo' },
-  { tomb: 'PT-002301', nome: 'Projetor Epson PowerLite X400', categoria: 'Áudio e Vídeo', ambiente: 'Auditório', aquisicao: '05/08/2023', situacao: 'Ativo' },
-  { tomb: 'PT-008874', nome: 'Cadeira Giratória Presidente', categoria: 'Mobiliário', ambiente: 'Coordenação', aquisicao: '22/01/2025', situacao: 'Ativo' },
-  { tomb: 'PT-001190', nome: 'Impressora HP LaserJet Pro', categoria: 'Informática', ambiente: 'Secretaria', aquisicao: '30/11/2022', situacao: 'Manutenção' },
-  { tomb: 'PT-006755', nome: 'Monitor LG 24" Full HD', categoria: 'Informática', ambiente: 'Lab. Informática 1', aquisicao: '12/03/2024', situacao: 'Ativo' },
-  { tomb: 'PT-003420', nome: 'Ar-condicionado Split 12000 BTUs', categoria: 'Climatização', ambiente: 'Biblioteca', aquisicao: '18/06/2023', situacao: 'Ativo' },
-  { tomb: 'PT-009012', nome: 'Mesa de Reunião 8 Lugares', categoria: 'Mobiliário', ambiente: 'Sala dos Professores', aquisicao: '02/02/2021', situacao: 'Ativo' },
-  { tomb: 'PT-007781', nome: 'Tablet Samsung Galaxy Tab', categoria: 'Informática', ambiente: 'Almoxarifado', aquisicao: '15/09/2024', situacao: 'Extraviado' },
-]
-
-const situacaoClasse: Record<Situacao, string> = {
-  Ativo: styles.ativo,
-  Manutenção: styles.manutencao,
-  Extraviado: styles.extraviado,
-}
+import { patrimoniosApi, type Patrimonio } from '@/lib/api'
 
 export default function PatrimoniosPage() {
+  const [itens, setItens] = useState<Patrimonio[]>([])
+  const [busca, setBusca] = useState('')
+  const [categoria, setCategoria] = useState('')
+  const [erro, setErro] = useState('')
+
+  useEffect(() => {
+    patrimoniosApi
+      .list()
+      .then(setItens)
+      .catch((error) =>
+        setErro(error instanceof Error ? error.message : 'Erro ao carregar patrimônios'),
+      )
+  }, [])
+
+  const filtrados = useMemo(
+    () =>
+      itens.filter(
+        (item) =>
+          (item.nome.toLowerCase().includes(busca.toLowerCase()) ||
+            String(item.tombamento).includes(busca)) &&
+          (!categoria || item.categoria === categoria),
+      ),
+    [itens, busca, categoria],
+  )
+
+  const categoriaFormatada = (value: string) =>
+    value.charAt(0) + value.slice(1).toLowerCase()
+
   return (
     <div>
       <PageHeader
         titulo="Patrimônios"
         descricao="Todos os bens registrados, com tombamento, categoria e localização atual."
         acao={
-          <Link href="/cadastro" className={styles.botaoPrimario}>
+          <Link href="/cadastro" className={styles.botaoPrimario} data-slot="page-action">
             <Plus size={17} /> Cadastrar item
           </Link>
         }
@@ -45,13 +51,22 @@ export default function PatrimoniosPage() {
       <div className={styles.filtros}>
         <div className={styles.busca}>
           <Search size={17} />
-          <input type="text" placeholder="Buscar por nome ou tombamento..." />
+          <input
+            type="text"
+            placeholder="Buscar por nome ou tombamento..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+          />
         </div>
-        <select className={styles.select} defaultValue="">
+        <select
+          className={styles.select}
+          value={categoria}
+          onChange={(e) => setCategoria(e.target.value)}
+        >
           <option value="">Todas as categorias</option>
-          <option>Informática</option>
-          <option>Mobiliário</option>
-          <option>Áudio e Vídeo</option>
+          <option value="ELETRÔNICO">Eletrônico</option>
+          <option value="MÓVEIS">Móveis</option>
+          <option value="MATERIAIS">Materiais</option>
           <option>Climatização</option>
         </select>
         <button className={styles.botaoSecundario}>
@@ -60,6 +75,7 @@ export default function PatrimoniosPage() {
       </div>
 
       <div className={styles.tabelaCard}>
+        {erro && <p style={{ color: '#b42318', padding: '16px' }}>{erro}</p>}
         <div className={styles.tabelaWrap}>
           <table className={styles.tabela}>
             <thead>
@@ -67,24 +83,30 @@ export default function PatrimoniosPage() {
                 <th>Tombamento</th>
                 <th>Item</th>
                 <th>Categoria</th>
+                <th>Quantidade</th>
                 <th>Ambiente</th>
                 <th>Aquisição</th>
                 <th>Situação</th>
               </tr>
             </thead>
             <tbody>
-              {itens.map((it) => (
-                <tr key={it.tomb}>
-                  <td className={styles.mono}>{it.tomb}</td>
+              {filtrados.map((it) => (
+                <tr key={it.id}>
+                  <td className={styles.mono}>{it.tombamento}</td>
                   <td className={styles.itemNome}>{it.nome}</td>
-                  <td>{it.categoria}</td>
-                  <td>{it.ambiente}</td>
-                  <td className={styles.suave}>{it.aquisicao}</td>
+                  <td>{categoriaFormatada(it.categoria)}</td>
+                  <td>{it.quantidade}</td>
+                  <td>
+                    {it.unidades?.[0]?.ambiente?.nome ?? 'Sem localização'}
+                  </td>
+                  <td className={styles.suave}>
+                    {new Date(it.createdAt).toLocaleDateString('pt-BR')}
+                  </td>
                   <td>
                     <span
-                      className={`${styles.situacao} ${situacaoClasse[it.situacao]}`}
+                      className={`${styles.situacao} ${styles.ativo}`}
                     >
-                      {it.situacao}
+                      {it.unidades?.[0]?.estado ?? 'ATIVO'}
                     </span>
                   </td>
                 </tr>
@@ -93,14 +115,7 @@ export default function PatrimoniosPage() {
           </table>
         </div>
         <div className={styles.rodapeTabela}>
-          <span>Mostrando 8 de 1.284 itens</span>
-          <div className={styles.paginacao}>
-            <button className={styles.pagBtn}>Anterior</button>
-            <button className={`${styles.pagBtn} ${styles.pagAtivo}`}>1</button>
-            <button className={styles.pagBtn}>2</button>
-            <button className={styles.pagBtn}>3</button>
-            <button className={styles.pagBtn}>Próximo</button>
-          </div>
+          <span>Mostrando {filtrados.length} de {itens.length} tipos de item</span>
         </div>
       </div>
     </div>

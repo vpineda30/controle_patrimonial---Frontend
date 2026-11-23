@@ -53,13 +53,36 @@
   color: var(--branco);
 }
 
+.acoesTopo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.botaoTopoPrimario {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--branco);
+  background-color: var(--vermelho);
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--vermelho);
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.botaoTopoPrimario:hover {
+  background-color: var(--vermelho-forte);
+  transform: translateY(-1px);
+}
+
 /* Hero */
 .hero {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: clamp(2rem, 6vw, 4.5rem) clamp(1.25rem, 5vw, 4rem) 2rem;
+  padding: 20px;
+  margin-top: 8rem;
 }
 
 .heroConteudo {
@@ -122,7 +145,7 @@
   color: var(--branco);
   font-weight: 600;
   font-size: 0.95rem;
-  padding: 0.8rem 1.5rem;
+  padding: 0.8rem 3rem;
   border-radius: 10px;
   transition: transform 0.15s ease, background-color 0.15s ease;
 }
@@ -137,7 +160,7 @@
   align-items: center;
   font-weight: 600;
   font-size: 0.95rem;
-  padding: 0.8rem 1.5rem;
+  padding: 0.8rem 3rem;
   border-radius: 10px;
   color: var(--preto);
   border: 1px solid var(--borda);
@@ -149,36 +172,6 @@
   color: var(--vermelho);
 }
 
-.numeros {
-  display: flex;
-  flex-wrap: wrap;
-  gap: clamp(1.5rem, 5vw, 3.5rem);
-  justify-content: center;
-  margin-top: 1rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--borda);
-  animation: subir 0.7s ease both 0.52s;
-}
-
-.numeroItem {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.numeroItem strong {
-  font-family: var(--font-poppins), sans-serif;
-  font-size: 1.9rem;
-  color: var(--vermelho-escuro);
-  line-height: 1.1;
-}
-
-.numeroItem span {
-  font-size: 0.82rem;
-  color: var(--texto-suave);
-  margin-top: 0.2rem;
-}
-
 /* Recursos */
 .recursos {
   display: grid;
@@ -188,6 +181,7 @@
   width: 100%;
   margin: 0 auto;
   padding: 1rem clamp(1.25rem, 5vw, 4rem) 4rem;
+  margin-bottom: 6rem;
 }
 
 .card {
@@ -240,15 +234,6 @@
   border-top: 1px solid var(--borda);
   font-size: 0.85rem;
   color: var(--texto-suave);
-}
-
-.linkRodape {
-  font-weight: 600;
-  color: var(--vermelho);
-}
-
-.linkRodape:hover {
-  text-decoration: underline;
 }
 
 /* Animacoes */

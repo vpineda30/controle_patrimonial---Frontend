@@ -36,28 +36,23 @@ const recursos = [
   },
 ]
 
-const numeros = [
-  { valor: '1.284', rotulo: 'Patrimônios' },
-  { valor: '48', rotulo: 'Ambientes' },
-  { valor: '76', rotulo: 'Movimentações/mês' },
-]
-
 export default function LandingPage() {
   return (
     <div className={styles.pagina}>
       <header className={styles.topo}>
         <span className={styles.logo}>SESI SENAI</span>
-        <Link href="/dashboard" className={styles.botaoTopo}>
-          Acessar sistema
-        </Link>
+        <div className={styles.acoesTopo}>
+          <Link href="/login" className={styles.botaoTopo}>
+            Entrar
+          </Link>
+          <Link href="/register" className={styles.botaoTopoPrimario}>
+            Criar conta
+          </Link>
+        </div>
       </header>
 
       <section className={styles.hero}>
         <div className={styles.heroConteudo}>
-          <span className={styles.selo}>
-            <ShieldCheck size={15} strokeWidth={2.4} />
-            Controle Patrimonial Escolar
-          </span>
           <h1 className={styles.titulo}>
             Cada bem da escola no <span>lugar certo</span>, sempre sob controle.
           </h1>
@@ -67,22 +62,13 @@ export default function LandingPage() {
             total.
           </p>
           <div className={styles.acoes}>
-            <Link href="/dashboard" className={styles.botaoPrimario}>
-              Entrar no painel
+            <Link href="/login" className={styles.botaoPrimario}>
+              Entrar
               <ArrowRight size={18} strokeWidth={2.4} />
             </Link>
-            <Link href="/patrimonios" className={styles.botaoSecundario}>
-              Ver patrimônios
+            <Link href="/register" className={styles.botaoSecundario}>
+              Criar conta
             </Link>
-          </div>
-
-          <div className={styles.numeros}>
-            {numeros.map((n) => (
-              <div key={n.rotulo} className={styles.numeroItem}>
-                <strong>{n.valor}</strong>
-                <span>{n.rotulo}</span>
-              </div>
-            ))}
           </div>
         </div>
       </section>
@@ -105,9 +91,6 @@ export default function LandingPage() {
 
       <footer className={styles.rodape}>
         <span>SESI SENAI · Controle Patrimonial</span>
-        <Link href="/dashboard" className={styles.linkRodape}>
-          Acessar sistema
-        </Link>
       </footer>
     </div>
   )

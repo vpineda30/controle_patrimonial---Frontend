@@ -121,6 +121,153 @@
   color: var(--texto-suave);
 }
 
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(26, 18, 20, 0.52);
+  backdrop-filter: blur(3px);
+}
+
+.modal {
+  width: min(100%, 520px);
+  max-height: min(90vh, 760px);
+  overflow-y: auto;
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(32, 12, 18, 0.24);
+  padding: 1.5rem;
+  animation: modalEntrar 0.18s ease-out both;
+}
+
+.modalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.modalHeader h2 {
+  color: var(--preto);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.modalHeader p {
+  margin-top: 0.3rem;
+  color: var(--texto-suave);
+  font-size: 0.88rem;
+}
+
+.modalFechar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  color: var(--texto-suave);
+  border-radius: 9px;
+}
+
+.modalFechar:hover:not(:disabled) {
+  color: var(--vermelho);
+  background: #fbeaec;
+}
+
+.modalForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modalCampo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  color: var(--preto);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.modalCampo input,
+.modalCampo select {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.65rem 0.8rem;
+  color: var(--texto);
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: 9px;
+  outline: none;
+  font: inherit;
+  font-weight: 400;
+}
+
+.modalCampo input:focus,
+.modalCampo select:focus {
+  border-color: var(--vermelho);
+  box-shadow: 0 0 0 3px rgba(197, 34, 51, 0.12);
+}
+
+.modalCampo small {
+  color: var(--texto-suave);
+  font-size: 0.78rem;
+  font-weight: 400;
+}
+
+.modalErro {
+  margin: 0;
+  padding: 0.7rem 0.8rem;
+  color: #b42318;
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+  border-radius: 9px;
+  font-size: 0.84rem;
+}
+
+.modalAcoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  margin-top: 0.5rem;
+}
+
+.modalCancelar {
+  padding: 0.65rem 1rem;
+  color: var(--texto);
+  background: var(--branco);
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.modalCancelar:hover:not(:disabled) {
+  border-color: var(--vermelho);
+  color: var(--vermelho);
+}
+
+.modalAcoes button:disabled,
+.modalFechar:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+@keyframes modalEntrar {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 @media (max-width: 1000px) {
   .grid {
     grid-template-columns: repeat(2, 1fr);

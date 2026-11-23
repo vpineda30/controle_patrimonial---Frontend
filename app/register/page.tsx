@@ -14,6 +14,8 @@ import {
   EyeOff,
   ArrowRight,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { authApi } from '@/lib/api'
 import styles from './register.module.css'
 
 const destaques = [
@@ -24,6 +26,26 @@ const destaques = [
 
 export default function CadastroUsuarioPage() {
   const [mostrarSenha, setMostrarSenha] = useState(false)
+  const [nome, setNome] = useState('')
+  const [email, setEmail] = useState('')
+  const [senha, setSenha] = useState('')
+  const [erro, setErro] = useState('')
+  const [carregando, setCarregando] = useState(false)
+  const router = useRouter()
+
+  async function criarConta(e: React.FormEvent) {
+    e.preventDefault()
+    setErro('')
+    setCarregando(true)
+    try {
+      await authApi.register(nome, email, senha)
+      router.push('/login')
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : 'Não foi possível criar a conta')
+    } finally {
+      setCarregando(false)
+    }
+  }
 
   return (
     <div className={styles.pagina}>
@@ -71,10 +93,7 @@ export default function CadastroUsuarioPage() {
             </p>
           </header>
 
-          <form
-            className={styles.formulario}
-            onSubmit={(e) => e.preventDefault()}
-          >
+          <form className={styles.formulario} onSubmit={criarConta}>
             <label className={styles.campo}>
               <span className={styles.rotulo}>Nome completo</span>
               <div className={styles.inputWrap}>
@@ -82,6 +101,8 @@ export default function CadastroUsuarioPage() {
                 <input
                   type="text"
                   required
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
                   placeholder="Seu nome"
                   className={styles.input}
                 />
@@ -95,23 +116,12 @@ export default function CadastroUsuarioPage() {
                 <input
                   type="email"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="voce@sesisenai.org.br"
                   className={styles.input}
                 />
               </div>
-            </label>
-
-            <label className={styles.campo}>
-              <span className={styles.rotulo}>Função</span>
-              <select className={styles.select} defaultValue="">
-                <option value="" disabled>
-                  Selecione sua função
-                </option>
-                <option value="secretaria">Secretaria</option>
-                <option value="coordenacao">Coordenação</option>
-                <option value="almoxarifado">Almoxarifado</option>
-                <option value="direcao">Direção</option>
-              </select>
             </label>
 
             <label className={styles.campo}>
@@ -121,6 +131,8 @@ export default function CadastroUsuarioPage() {
                 <input
                   type={mostrarSenha ? 'text' : 'password'}
                   required
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
                   placeholder="Crie uma senha"
                   className={styles.input}
                 />
@@ -146,8 +158,10 @@ export default function CadastroUsuarioPage() {
               </span>
             </label>
 
-            <button type="submit" className={styles.botaoPrimario}>
-              Criar conta
+            {erro && <p style={{ color: '#b42318', margin: 0 }}>{erro}</p>}
+
+            <button type="submit" className={styles.botaoPrimario} disabled={carregando}>
+              {carregando ? 'Criando...' : 'Criar conta'}
               <ArrowRight size={18} strokeWidth={2.4} />
             </button>
           </form>

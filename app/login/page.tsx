@@ -13,6 +13,8 @@ import {
   EyeOff,
   ArrowRight,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { authApi } from '@/lib/api'
 import styles from './login.module.css'
 
 const destaques = [
@@ -24,6 +26,38 @@ const destaques = [
 
 export default function LoginPage() {
   const [mostrarSenha, setMostrarSenha] = useState(false)
+  const [email, setEmail] = useState('')
+  const [senha, setSenha] = useState('')
+  const [erro, setErro] = useState('')
+  const [carregando, setCarregando] = useState(false)
+  const router = useRouter()
+
+  async function entrar(e: React.FormEvent) {
+    e.preventDefault()
+    setErro('')
+    setCarregando(true)
+    try {
+      const result = await authApi.login(email, senha)
+      localStorage.setItem('auth_token', result.token)
+      localStorage.setItem('auth_user', JSON.stringify(result.user))
+      router.push('/dashboard')
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : 'Não foi possível entrar')
+    } finally {
+      setCarregando(false)
+    }
+  }
+
+  async function recuperarSenha() {
+    const recuperacaoEmail = window.prompt('Informe seu e-mail:')
+    if (!recuperacaoEmail) return
+    try {
+      await authApi.forgotPassword(recuperacaoEmail)
+      setErro('Solicitação de recuperação enviada.')
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : 'Erro ao solicitar recuperação')
+    }
+  }
 
   return (
     <div className={styles.pagina}>
@@ -67,10 +101,7 @@ export default function LoginPage() {
             </p>
           </header>
 
-          <form
-            className={styles.formulario}
-            onSubmit={(e) => e.preventDefault()}
-          >
+          <form className={styles.formulario} onSubmit={entrar}>
             <label className={styles.campo}>
               <span className={styles.rotulo}>E-mail</span>
               <div className={styles.inputWrap}>
@@ -78,6 +109,8 @@ export default function LoginPage() {
                 <input
                   type="email"
                   required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="voce@sesisenai.org.br"
                   className={styles.input}
                 />
@@ -91,6 +124,8 @@ export default function LoginPage() {
                 <input
                   type={mostrarSenha ? 'text' : 'password'}
                   required
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
                   placeholder="Sua senha"
                   className={styles.input}
                 />
@@ -110,20 +145,22 @@ export default function LoginPage() {
                 <input type="checkbox" className={styles.checkbox} />
                 Lembrar de mim
               </label>
-              <Link href="#" className={styles.link}>
+              <button type="button" onClick={recuperarSenha} className={styles.link}>
                 Esqueci a senha
-              </Link>
+              </button>
             </div>
 
-            <button type="submit" className={styles.botaoPrimario}>
-              Entrar
+            {erro && <p style={{ color: '#b42318', margin: 0 }}>{erro}</p>}
+
+            <button type="submit" className={styles.botaoPrimario} disabled={carregando}>
+              {carregando ? 'Entrando...' : 'Entrar'}
               <ArrowRight size={18} strokeWidth={2.4} />
             </button>
           </form>
 
           <p className={styles.rodapeForm}>
             Ainda não tem conta?{' '}
-            <Link href="/cadastro-usuario" className={styles.link}>
+            <Link href="/register" className={styles.link}>
               Criar conta
             </Link>
           </p>

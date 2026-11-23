@@ -1,16 +1,79 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import { ArrowRight, Check } from 'lucide-react'
 import { PageHeader } from '@/components/page-header'
+import {
+  ambientesApi,
+  movimentacoesApi,
+  patrimoniosApi,
+  type Ambiente,
+  type Movimentacao,
+  type Patrimonio,
+} from '@/lib/api'
 import styles from './movimentacao.module.css'
 
-const historico = [
-  { item: 'Notebook Dell Latitude', tomb: 'PT-004512', origem: 'Almoxarifado', destino: 'Lab. Informática 2', resp: 'Iggor Cruz', data: '28/07/2026' },
-  { item: 'Projetor Epson X400', tomb: 'PT-002301', origem: 'Sala 12', destino: 'Auditório', resp: 'Eduardo Mairena', data: '27/07/2026' },
-  { item: 'Cadeira Giratória', tomb: 'PT-008874', origem: 'Secretaria', destino: 'Coordenação', resp: 'Ana Julya', data: '26/07/2026' },
-  { item: 'Impressora HP LaserJet', tomb: 'PT-001190', origem: 'Sala dos Professores', destino: 'Secretaria', resp: 'Vinícius Silveira', data: '25/07/2026' },
-  { item: 'Monitor LG 24"', tomb: 'PT-006755', origem: 'Almoxarifado', destino: 'Lab. Informática 1', resp: 'Iggor Cruz', data: '22/07/2026' },
-]
-
 export default function MovimentacaoPage() {
+  const [historico, setHistorico] = useState<Movimentacao[]>([])
+  const [patrimonios, setPatrimonios] = useState<Patrimonio[]>([])
+  const [ambientes, setAmbientes] = useState<Ambiente[]>([])
+  const [unidadeItemId, setUnidadeItemId] = useState('')
+  const [origem, setOrigem] = useState('')
+  const [destino, setDestino] = useState('')
+  const [resp, setResp] = useState('')
+  const [erro, setErro] = useState('')
+  const [salvando, setSalvando] = useState(false)
+
+  async function carregar() {
+    try {
+      const [moves, items, rooms] = await Promise.all([
+        movimentacoesApi.list(),
+        patrimoniosApi.list(),
+        ambientesApi.list(),
+      ])
+      setHistorico(moves)
+      setPatrimonios(items)
+      setAmbientes(rooms)
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : 'Erro ao carregar movimentações')
+    }
+  }
+
+  useEffect(() => {
+    carregar()
+  }, [])
+
+  function selecionarUnidade(id: string) {
+    setUnidadeItemId(id)
+    const unidade = patrimonios
+      .flatMap((item) => item.unidades ?? [])
+      .find((candidate) => candidate.id === id)
+    setOrigem(unidade?.ambiente?.nome ?? '')
+  }
+
+  async function registrar(e: React.FormEvent) {
+    e.preventDefault()
+    setErro('')
+    setSalvando(true)
+    try {
+      await movimentacoesApi.create({
+        unidadeItemId,
+        origem,
+        destino,
+        resp,
+      })
+      setUnidadeItemId('')
+      setOrigem('')
+      setDestino('')
+      setResp('')
+      await carregar()
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : 'Erro ao registrar movimentação')
+    } finally {
+      setSalvando(false)
+    }
+  }
+
   return (
     <div>
       <PageHeader
@@ -19,24 +82,45 @@ export default function MovimentacaoPage() {
       />
 
       <div className={styles.layout}>
-        <form className={styles.form}>
+        <form className={styles.form} onSubmit={registrar}>
           <h2 className={styles.formTitulo}>Nova movimentação</h2>
 
           <div className={styles.campo}>
             <label htmlFor="item">Item / Tombamento</label>
-            <input id="item" type="text" placeholder="Buscar por nome ou PT-000000" />
+            <select
+              id="item"
+              required
+              value={unidadeItemId}
+              onChange={(e) => selecionarUnidade(e.target.value)}
+            >
+              <option value="" disabled>Selecione uma unidade</option>
+              {patrimonios.flatMap((item) =>
+                (item.unidades ?? []).map((unidade) => (
+                  <option key={unidade.id} value={unidade.id}>
+                    {item.tombamento} - {item.nome}
+                  </option>
+                )),
+              )}
+            </select>
           </div>
 
           <div className={styles.trajeto}>
             <div className={styles.campo}>
               <label htmlFor="origem">Origem</label>
-              <select id="origem" defaultValue="">
+              <select
+                id="origem"
+                required
+                value={origem}
+                onChange={(e) => setOrigem(e.target.value)}
+              >
                 <option value="" disabled>
                   Ambiente atual...
                 </option>
-                <option>Almoxarifado</option>
-                <option>Secretaria</option>
-                <option>Biblioteca</option>
+                {ambientes.map((ambiente) => (
+                  <option key={ambiente.id} value={ambiente.nome}>
+                    {ambiente.nome}
+                  </option>
+                ))}
               </select>
             </div>
             <div className={styles.seta}>
@@ -44,29 +128,39 @@ export default function MovimentacaoPage() {
             </div>
             <div className={styles.campo}>
               <label htmlFor="destino">Destino</label>
-              <select id="destino" defaultValue="">
+              <select
+                id="destino"
+                required
+                value={destino}
+                onChange={(e) => setDestino(e.target.value)}
+              >
                 <option value="" disabled>
                   Novo ambiente...
                 </option>
-                <option>Lab. Informática 1</option>
-                <option>Auditório</option>
-                <option>Coordenação</option>
+                {ambientes.map((ambiente) => (
+                  <option key={ambiente.id} value={ambiente.nome}>
+                    {ambiente.nome}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
 
           <div className={styles.campo}>
             <label htmlFor="resp">Responsável</label>
-            <input id="resp" type="text" placeholder="Nome do responsável" />
+            <input
+              id="resp"
+              type="text"
+              required
+              value={resp}
+              onChange={(e) => setResp(e.target.value)}
+              placeholder="Nome do responsável"
+            />
           </div>
 
-          <div className={styles.campo}>
-            <label htmlFor="motivo">Motivo da movimentação</label>
-            <textarea id="motivo" rows={3} placeholder="Ex: realocação para novo laboratório" />
-          </div>
-
-          <button type="submit" className={styles.botaoPrimario}>
-            <Check size={17} /> Confirmar movimentação
+          {erro && <p style={{ color: '#b42318', margin: 0 }}>{erro}</p>}
+          <button type="submit" className={styles.botaoPrimario} disabled={salvando}>
+            <Check size={17} /> {salvando ? 'Registrando...' : 'Confirmar movimentação'}
           </button>
         </form>
 
@@ -74,18 +168,20 @@ export default function MovimentacaoPage() {
           <h2 className={styles.histTitulo}>Histórico recente</h2>
           <ul className={styles.timeline}>
             {historico.map((h) => (
-              <li key={h.tomb + h.data} className={styles.evento}>
+              <li key={h.id} className={styles.evento}>
                 <div className={styles.ponto} />
                 <div className={styles.eventoBody}>
                   <div className={styles.eventoTopo}>
-                    <span className={styles.eventoItem}>{h.item}</span>
-                    <span className={styles.eventoData}>{h.data}</span>
+                    <span className={styles.eventoItem}>{h.unidadeItem.item.nome}</span>
+                    <span className={styles.eventoData}>
+                      {new Date(h.dataMovimentacao).toLocaleDateString('pt-BR')}
+                    </span>
                   </div>
                   <p className={styles.trajetoTexto}>
                     {h.origem} <ArrowRight size={13} /> {h.destino}
                   </p>
                   <p className={styles.eventoMeta}>
-                    <span className={styles.mono}>{h.tomb}</span> · {h.resp}
+                    <span className={styles.mono}>{h.unidadeItem.item.tombamento}</span> · {h.resp}
                   </p>
                 </div>
               </li>

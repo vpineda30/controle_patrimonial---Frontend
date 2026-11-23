@@ -1,0 +1,40 @@
+.app {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main {
+  flex: 1;
+  margin-left: var(--sidebar-largura);
+  min-height: 100vh;
+  padding: 4rem 5rem;
+  background-color: var(--branco);
+}
+
+.app :global([data-slot="page-action"]) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 40px;
+  padding: 0 1rem;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  white-space: nowrap;
+}
+
+.app :global([data-slot="page-action"] svg) {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 900px) {
+  .main {
+    margin-left: 0;
+    padding: 5rem 1.25rem 2rem;
+  }
+}

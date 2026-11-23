@@ -1,3 +1,6 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import {
   Package,
@@ -9,80 +12,77 @@ import {
 } from 'lucide-react'
 import { PageHeader } from '@/components/page-header'
 import styles from './dashboard.module.css'
-
-const indicadores = [
-  {
-    label: 'Total de patrimônios',
-    valor: '1.284',
-    detalhe: '+32 este mês',
-    icon: Package,
-  },
-  {
-    label: 'Ambientes mapeados',
-    valor: '48',
-    detalhe: '5 blocos',
-    icon: DoorOpen,
-  },
-  {
-    label: 'Movimentações',
-    valor: '76',
-    detalhe: 'últimos 30 dias',
-    icon: ArrowLeftRight,
-  },
-  {
-    label: 'Em manutenção',
-    valor: '19',
-    detalhe: '4 aguardando',
-    icon: Wrench,
-  },
-]
-
-const movimentacoes = [
-  {
-    item: 'Notebook Dell Latitude',
-    tomb: 'PT-004512',
-    origem: 'Almoxarifado',
-    destino: 'Lab. Informática 2',
-    data: '28/07',
-  },
-  {
-    item: 'Projetor Epson X400',
-    tomb: 'PT-002301',
-    origem: 'Sala 12',
-    destino: 'Auditório',
-    data: '27/07',
-  },
-  {
-    item: 'Cadeira Giratória',
-    tomb: 'PT-008874',
-    origem: 'Secretaria',
-    destino: 'Coordenação',
-    data: '26/07',
-  },
-  {
-    item: 'Impressora HP LaserJet',
-    tomb: 'PT-001190',
-    origem: 'Sala dos Professores',
-    destino: 'Secretaria',
-    data: '25/07',
-  },
-]
-
-const ambientes = [
-  { nome: 'Laboratório de Informática 1', qtd: 42, ocupacao: 92 },
-  { nome: 'Secretaria', qtd: 28, ocupacao: 74 },
-  { nome: 'Biblioteca', qtd: 65, ocupacao: 58 },
-  { nome: 'Auditório', qtd: 37, ocupacao: 40 },
-]
+import {
+  ambientesApi,
+  blocosApi,
+  movimentacoesApi,
+  patrimoniosApi,
+  type Ambiente,
+  type Movimentacao,
+  type Patrimonio,
+} from '@/lib/api'
 
 export default function DashboardPage() {
+  const [patrimonios, setPatrimonios] = useState<Patrimonio[]>([])
+  const [ambientes, setAmbientes] = useState<Ambiente[]>([])
+  const [movimentacoes, setMovimentacoes] = useState<Movimentacao[]>([])
+  const [blocos, setBlocos] = useState<Awaited<ReturnType<typeof blocosApi.list>>>([])
+  const [erro, setErro] = useState('')
+
+  useEffect(() => {
+    Promise.all([
+      patrimoniosApi.list(),
+      ambientesApi.list(),
+      movimentacoesApi.list(),
+      blocosApi.list(),
+    ])
+      .then(([items, rooms, moves, blocks]) => {
+        setPatrimonios(items)
+        setAmbientes(rooms)
+        setMovimentacoes(moves)
+        setBlocos(blocks)
+      })
+      .catch((error) =>
+        setErro(error instanceof Error ? error.message : 'Erro ao carregar o painel'),
+      )
+  }, [])
+
+  const totalUnidades = patrimonios.reduce(
+    (total, item) => total + (item.unidades?.length ?? item.quantidade),
+    0,
+  )
+  const emSituacao = patrimonios.reduce(
+    (total, item) =>
+      total +
+      (item.unidades?.filter(
+        (unidade) =>
+          unidade.estado === 'MANUTENÇÃO' ||
+          unidade.estado === 'DANIFICADO',
+      ).length ?? 0),
+    0,
+  )
+  const indicadores = [
+    { label: 'Total de patrimônios', valor: totalUnidades, detalhe: `${patrimonios.length} tipos cadastrados`, icon: Package },
+    { label: 'Ambientes mapeados', valor: ambientes.length, detalhe: `${blocos.length} blocos`, icon: DoorOpen },
+    { label: 'Movimentações', valor: movimentacoes.length, detalhe: 'registro total', icon: ArrowLeftRight },
+    { label: 'Em manutenção', valor: emSituacao, detalhe: 'itens com situação especial', icon: Wrench },
+  ]
+  const ocupacao = ambientes
+    .map((ambiente) => ({
+      nome: ambiente.nome,
+      qtd: ambiente.unidades?.length ?? 0,
+    }))
+    .sort((a, b) => b.qtd - a.qtd)
+    .slice(0, 4)
+  const maiorQtd = Math.max(...ocupacao.map((item) => item.qtd), 1)
+
   return (
     <div>
       <PageHeader
         titulo="Visão Geral"
         descricao="Acompanhe os bens da escola, movimentações recentes e a ocupação dos ambientes."
         acao={
-          <Link href="/cadastro" className={styles.botaoPrimario}>
+          <Link href="/cadastro" className={styles.botaoPrimario} data-slot="page-action">
             Cadastrar item
           </Link>
         }
@@ -105,6 +105,8 @@ export default function DashboardPage() {
         ))}
       </section>
 
+      {erro && <p style={{ color: '#b42318' }}>{erro}</p>}
+
       <div className={styles.grid}>
         <section className={styles.painel}>
           <div className={styles.painelTopo}>
@@ -125,13 +127,15 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {movimentacoes.map((m) => (
-                  <tr key={m.tomb}>
-                    <td className={styles.itemNome}>{m.item}</td>
-                    <td className={styles.mono}>{m.tomb}</td>
+                {movimentacoes.slice(0, 5).map((m) => (
+                  <tr key={m.id}>
+                    <td className={styles.itemNome}>{m.unidadeItem.item.nome}</td>
+                    <td className={styles.mono}>{m.unidadeItem.item.tombamento}</td>
                     <td>{m.origem}</td>
                     <td>{m.destino}</td>
-                    <td className={styles.data}>{m.data}</td>
+                    <td className={styles.data}>
+                      {new Date(m.dataMovimentacao).toLocaleDateString('pt-BR')}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -147,7 +151,7 @@ export default function DashboardPage() {
             </Link>
           </div>
           <ul className={styles.listaAmbientes}>
-            {ambientes.map((a) => (
+            {ocupacao.map((a) => (
               <li key={a.nome} className={styles.ambienteItem}>
                 <div className={styles.ambienteInfo}>
                   <span className={styles.ambienteNome}>{a.nome}</span>
@@ -156,7 +160,7 @@ export default function DashboardPage() {
                 <div className={styles.barra}>
                   <div
                     className={styles.barraFill}
-                    style={{ width: `${a.ocupacao}%` }}
+                    style={{ width: `${Math.round((a.qtd / maiorQtd) * 100)}%` }}
                   />
                 </div>
               </li>

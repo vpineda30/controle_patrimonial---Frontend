@@ -1,5 +1,5 @@
 import { Sidebar } from '@/components/sidebar'
-import styles from '../layout.module.css'
+import styles from './layout.module.css'
 
 export default function SistemaLayout({
   children,

@@ -46,19 +46,20 @@
 }
 
 .marcaConteudo {
-  max-width: 420px;
+  max-width: 550px;
 }
 
 .marcaTitulo {
-  font-size: clamp(1.6rem, 3vw, 2.3rem);
+  font-size: 3.6rem;
   line-height: 1.2;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.05em;
   text-wrap: balance;
   animation: subir 0.7s ease both 0.15s;
+  color: var(--branco);
 }
 
 .listaDestaques {
-  margin-top: 2rem;
+  margin-top: 4rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;

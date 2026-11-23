@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   LayoutDashboard,
   DoorOpen,
@@ -27,6 +27,23 @@ const links = [
 export function Sidebar() {
   const pathname = usePathname()
   const [aberto, setAberto] = useState(false)
+  const [usuario, setUsuario] = useState<{ name: string; role: string } | null>(null)
+
+  useEffect(() => {
+    const token = localStorage.getItem('auth_token')
+    if (!token) {
+      window.location.href = '/login'
+      return
+    }
+    const stored = localStorage.getItem('auth_user')
+    if (stored) {
+      try {
+        setUsuario(JSON.parse(stored))
+      } catch {
+        setUsuario(null)
+      }
+    }
+  }, [])
 
   return (
     <>
@@ -67,10 +84,17 @@ export function Sidebar() {
 
         <div className={styles.rodape}>
           <div className={styles.usuario}>
-            <div className={styles.avatar}>AJ</div>
+            <div className={styles.avatar}>
+              {usuario?.name
+                ?.split(' ')
+                .map((part) => part[0])
+                .join('')
+                .slice(0, 2)
+                .toUpperCase() || 'US'}
+            </div>
             <div>
-              <p className={styles.usuarioNome}>Ana Julya</p>
-              <p className={styles.usuarioCargo}>Secretaria</p>
+              <p className={styles.usuarioNome}>{usuario?.name || 'Usuário'}</p>
+              <p className={styles.usuarioCargo}>{usuario?.role || 'Autenticado'}</p>
             </div>
           </div>
         </div>
