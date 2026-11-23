@@ -63,7 +63,7 @@ export default function LoginPage() {
     <div className={styles.pagina}>
       <aside className={styles.marca}>
         <div className={styles.marcaTopo}>
-          <span className={styles.logo}>SESI SENAI</span>
+          <img src="logo.png" className={styles.logo} alt="" />
           <p className={styles.marcaLegenda}>Controle Patrimonial</p>
         </div>
 

@@ -61,7 +61,7 @@ export function Sidebar() {
 
       <aside className={`${styles.sidebar} ${aberto ? styles.open : ''}`}>
         <div className={styles.brand}>
-          <span className={styles.logo}>SESI SENAI</span>
+          <img src="logo.png" className={styles.logo} alt="" />
           <span className={styles.brandSub}>Controle Patrimonial</span>
         </div>
 

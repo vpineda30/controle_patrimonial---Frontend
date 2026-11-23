@@ -40,7 +40,7 @@ export default function LandingPage() {
   return (
     <div className={styles.pagina}>
       <header className={styles.topo}>
-        <span className={styles.logo}>SESI SENAI</span>
+        <img src="logo.png" className={styles.logo} alt="" />
         <div className={styles.acoesTopo}>
           <Link href="/login" className={styles.botaoTopo}>
             Entrar
