@@ -31,7 +31,8 @@
   flex: 1;
 }
 
-.campo label {
+.campo label,
+.campo > span {
   font-size: 0.82rem;
   font-weight: 500;
   color: var(--cinza);
@@ -80,6 +81,18 @@
   justify-content: center;
   flex-shrink: 0;
   margin-bottom: 0.25rem;
+}
+
+.origemSelecionada {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--borda);
+  border-radius: 9px;
+  background-color: #f9fafb;
+  color: var(--texto);
+  font-size: 0.9rem;
 }
 
 .botaoPrimario {
@@ -190,8 +203,72 @@
   font-weight: 600;
 }
 
+.esqueleto {
+  border-radius: 8px;
+  background: linear-gradient(90deg, #f1f1f1 25%, #fafafa 50%, #f1f1f1 75%);
+  background-size: 200% 100%;
+  animation: carregarEsqueleto 1.4s ease-in-out infinite;
+}
+
+.esqueletoTitulo {
+  width: 42%;
+  height: 20px;
+  margin-bottom: 0.25rem;
+}
+
+.esqueletoCampo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.esqueletoLabel {
+  width: 28%;
+  height: 12px;
+}
+
+.esqueletoControle {
+  width: 100%;
+  height: 40px;
+}
+
+.esqueletoEvento {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--borda);
+}
+
+.esqueletoEventoTitulo {
+  width: 52%;
+  height: 14px;
+}
+
+.esqueletoEventoTexto {
+  width: 78%;
+  height: 12px;
+}
+
+.esqueletoEventoMeta {
+  width: 62%;
+  height: 10px;
+}
+
+@keyframes carregarEsqueleto {
+  to {
+    background-position: -200% 0;
+  }
+}
+
 @media (max-width: 900px) {
   .layout {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .esqueleto {
+    animation: none;
   }
 }

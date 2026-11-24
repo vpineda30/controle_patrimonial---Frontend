@@ -73,7 +73,7 @@ export default function DashboardPage() {
       qtd: ambiente.unidades?.length ?? 0,
     }))
     .sort((a, b) => b.qtd - a.qtd)
-    .slice(0, 4)
+    .slice(0, 5)
   const maiorQtd = Math.max(...ocupacao.map((item) => item.qtd), 1)
 
   return (

@@ -1,15 +1,16 @@
 -- Carga inicial do inventario de PATRIMONIO.MD (dados de demonstracao).
 -- Execute somente em banco de desenvolvimento/teste e confirme os nomes no schema do backend.
--- Pressupoe tabelas "Bloco", "Ambiente", "Patrimonio" e "UnidadeItem";
--- IDs textuais, colunas camelCase do Prisma, e coluna UnidadeItem.estado com valor ATIVO.
+-- Pressupoe tabelas "Bloco", "Ambiente", "Item" e "UnidadeItem";
+-- IDs finais em texto UUID; chaves seed-* sao temporarias e nao sao gravadas nas tabelas reais.
+-- Colunas camelCase do Prisma; UnidadeItem.estado recebe ATIVO.
 -- Sala Maker nao informa responsavel no arquivo; foi registrada como "Nao informado".
 -- Se os blocos 1-4 ou tombamentos 100001-100238 ja existirem, o script aborta sem inserir.
 
 BEGIN;
 
-CREATE TEMP TABLE seed_blocos (id text PRIMARY KEY, numero integer NOT NULL) ON COMMIT DROP;
-CREATE TEMP TABLE seed_ambientes (id text PRIMARY KEY, nome text NOT NULL, responsavel text NOT NULL, bloco_id text NOT NULL) ON COMMIT DROP;
-CREATE TEMP TABLE seed_patrimonios (id text PRIMARY KEY, tombamento integer UNIQUE NOT NULL, nome text NOT NULL, marca text NOT NULL, categoria text NOT NULL, valor numeric(12,2) NOT NULL, quantidade integer NOT NULL, ambiente_id text NOT NULL) ON COMMIT DROP;
+CREATE TEMP TABLE seed_blocos (id text PRIMARY KEY, db_id text NOT NULL UNIQUE DEFAULT gen_random_uuid()::text, numero integer NOT NULL) ON COMMIT DROP;
+CREATE TEMP TABLE seed_ambientes (id text PRIMARY KEY, db_id text NOT NULL UNIQUE DEFAULT gen_random_uuid()::text, nome text NOT NULL, responsavel text NOT NULL, bloco_id text NOT NULL) ON COMMIT DROP;
+CREATE TEMP TABLE seed_patrimonios (id text PRIMARY KEY, db_id text NOT NULL UNIQUE DEFAULT gen_random_uuid()::text, tombamento integer UNIQUE NOT NULL, nome text NOT NULL, marca text NOT NULL, categoria text NOT NULL, valor numeric(12,2) NOT NULL, quantidade integer NOT NULL, ambiente_id text NOT NULL) ON COMMIT DROP;
 
 INSERT INTO seed_blocos (id, numero) VALUES
     ('seed-bloco-1', 1),
@@ -279,23 +280,31 @@ INSERT INTO seed_patrimonios (id, tombamento, nome, marca, categoria, valor, qua
 
 DO $precheck$
 BEGIN
-    IF EXISTS (SELECT 1 FROM "Bloco" b JOIN seed_blocos s ON b."numero" = s.numero OR b."id" = s.id) THEN
+    IF EXISTS (SELECT 1 FROM "Bloco" b JOIN seed_blocos s ON b."numero" = s.numero) THEN
         RAISE EXCEPTION 'Ja existem blocos com os numeros 1-4; use um banco vazio ou adapte o mapeamento.';
     END IF;
-    IF EXISTS (SELECT 1 FROM "Ambiente" a JOIN seed_ambientes s ON a."id" = s.id) THEN
-        RAISE EXCEPTION 'Ja existem IDs de ambiente desta carga; carga cancelada.';
+    IF EXISTS (
+        SELECT 1
+        FROM "Ambiente" a
+        JOIN "Bloco" b ON b."id" = a."blocoId"
+        JOIN seed_blocos sb ON sb.numero = b."numero"
+        JOIN seed_ambientes s ON s.bloco_id = sb.id AND s.nome = a."nome"
+    ) THEN
+        RAISE EXCEPTION 'Ja existem ambientes desta carga; carga cancelada.';
     END IF;
-    IF EXISTS (SELECT 1 FROM "Patrimonio" p JOIN seed_patrimonios s ON p."tombamento" = s.tombamento OR p."id" = s.id) THEN
+    IF EXISTS (SELECT 1 FROM "Item" p JOIN seed_patrimonios s ON p."tombamento" = s.tombamento) THEN
         RAISE EXCEPTION 'Ja existem tombamentos entre 100001 e 100238; carga cancelada.';
     END IF;
 END;
 $precheck$;
 
 INSERT INTO "Bloco" ("id", "numero")
-SELECT id, numero FROM seed_blocos;
+SELECT db_id, numero FROM seed_blocos;
 
 INSERT INTO "Ambiente" ("id", "nome", "responsavel", "blocoId")
-SELECT id, nome, responsavel, bloco_id FROM seed_ambientes;
+SELECT s.db_id, s.nome, s.responsavel, b.db_id
+FROM seed_ambientes s
+JOIN seed_blocos b ON b.id = s.bloco_id;
 
 DO $seed_patrimonios$
 DECLARE
@@ -304,15 +313,15 @@ BEGIN
     SELECT format_type(a.atttypid, a.atttypmod)
       INTO categoria_type
       FROM pg_attribute a
-     WHERE a.attrelid = '"Patrimonio"'::regclass
+     WHERE a.attrelid = '"Item"'::regclass
        AND a.attname = 'categoria'
        AND NOT a.attisdropped;
     IF categoria_type IS NULL THEN
-        RAISE EXCEPTION 'Nao encontrei a coluna categoria em "Patrimonio".';
+        RAISE EXCEPTION 'Nao encontrei a coluna categoria em "Item".';
     END IF;
     EXECUTE format($sql$
-        INSERT INTO "Patrimonio" ("id", "tombamento", "nome", "descricao", "valor", "categoria", "marca", "quantidade", "createdAt")
-        SELECT id, tombamento, nome, NULL, valor, categoria::%s, marca, quantidade, CURRENT_TIMESTAMP
+        INSERT INTO "Item" ("id", "tombamento", "nome", "descricao", "valor", "categoria", "marca", "quantidade", "createdAt")
+        SELECT db_id, tombamento, nome, NULL, valor, categoria::%s, marca, quantidade, CURRENT_TIMESTAMP
         FROM seed_patrimonios
     $sql$, categoria_type);
 END;
@@ -334,18 +343,19 @@ BEGIN
     EXECUTE format($sql$
         INSERT INTO "UnidadeItem" ("id", "estado", "itemId", "ambienteId")
         SELECT
-            'seed-unidade-' || lpad(p.tombamento::text, 6, '0') || '-' || lpad(u.n::text, 4, '0'),
-            %L::%s, p.id, p.ambiente_id
+            gen_random_uuid()::text,
+            %L::%s, p.db_id, a.db_id
         FROM seed_patrimonios p
+        JOIN seed_ambientes a ON a.id = p.ambiente_id
         CROSS JOIN LATERAL generate_series(1, p.quantidade) AS u(n)
     $sql$, 'ATIVO', estado_type);
 END;
 $seed_units$;
 
 SELECT
-    (SELECT count(*) FROM "Bloco" b JOIN seed_blocos s ON s.id = b."id") AS blocos_inseridos,
-    (SELECT count(*) FROM "Ambiente" a JOIN seed_ambientes s ON s.id = a."id") AS ambientes_inseridos,
-    (SELECT count(*) FROM "Patrimonio" p JOIN seed_patrimonios s ON s.id = p."id") AS patrimonios_inseridos,
-    (SELECT count(*) FROM "UnidadeItem" u JOIN seed_patrimonios p ON p.id = u."itemId") AS unidades_inseridas;
+    (SELECT count(*) FROM "Bloco" b JOIN seed_blocos s ON s.db_id = b."id") AS blocos_inseridos,
+    (SELECT count(*) FROM "Ambiente" a JOIN seed_ambientes s ON s.db_id = a."id") AS ambientes_inseridos,
+    (SELECT count(*) FROM "Item" p JOIN seed_patrimonios s ON s.db_id = p."id") AS patrimonios_inseridos,
+    (SELECT count(*) FROM "UnidadeItem" u JOIN seed_patrimonios p ON p.db_id = u."itemId") AS unidades_inseridas;
 
 COMMIT;

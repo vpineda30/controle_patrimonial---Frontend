@@ -6,8 +6,10 @@ import { Save, X } from 'lucide-react'
 import { PageHeader } from '@/components/page-header'
 import {
   ambientesApi,
+  blocosApi,
   patrimoniosApi,
   type Ambiente,
+  type Bloco,
   type CriarPatrimonio,
 } from '@/lib/api'
 import styles from './cadastro.module.css'
@@ -15,6 +17,8 @@ import styles from './cadastro.module.css'
 export default function CadastroPage() {
   const router = useRouter()
   const [ambientes, setAmbientes] = useState<Ambiente[]>([])
+  const [blocos, setBlocos] = useState<Bloco[]>([])
+  const [blocoId, setBlocoId] = useState('')
   const [erroAmbientes, setErroAmbientes] = useState('')
   const [form, setForm] = useState({
     nome: '',
@@ -30,13 +34,17 @@ export default function CadastroPage() {
   const [salvando, setSalvando] = useState(false)
 
   useEffect(() => {
-    ambientesApi
-      .list()
-      .then(setAmbientes)
+    Promise.all([ambientesApi.list(), blocosApi.list()])
+      .then(([rooms, blocks]) => {
+        setAmbientes(rooms)
+        setBlocos(blocks)
+      })
       .catch((error) =>
         setErroAmbientes(error instanceof Error ? error.message : 'Erro ao carregar ambientes'),
       )
   }, [])
+
+  const ambientesDoBloco = ambientes.filter((ambiente) => ambiente.blocoId === blocoId)
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -160,20 +168,42 @@ export default function CadastroPage() {
             </div>
           </div>
           <div className={styles.campo}>
+            <label htmlFor="bloco-inicial">Bloco</label>
+            <select
+              id="bloco-inicial"
+              value={blocoId}
+              onChange={(e) => {
+                setBlocoId(e.target.value)
+                setForm({ ...form, ambienteId: '' })
+              }}
+            >
+              <option value="">Selecione um bloco</option>
+              {blocos.map((bloco) => (
+                <option key={bloco.id} value={bloco.id}>
+                  Bloco {bloco.numero ?? 'sem número'}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className={styles.campo}>
             <label htmlFor="ambiente">Ambiente inicial (opcional)</label>
             <select
               id="ambiente"
               value={form.ambienteId}
               onChange={(e) => setForm({ ...form, ambienteId: e.target.value })}
+              disabled={!blocoId}
             >
               <option value="">Sem localização (atribuir depois)</option>
-              {ambientes.map((ambiente) => (
+              {ambientesDoBloco.map((ambiente) => (
                 <option key={ambiente.id} value={ambiente.id}>
                   {ambiente.nome}
                 </option>
               ))}
             </select>
             <small>As unidades da quantidade informada serão vinculadas a este ambiente.</small>
+            {blocoId && ambientesDoBloco.length === 0 && (
+              <small>Este bloco não possui ambientes cadastrados.</small>
+            )}
             {erroAmbientes && <small role="alert">{erroAmbientes}</small>}
           </div>
         </section>
