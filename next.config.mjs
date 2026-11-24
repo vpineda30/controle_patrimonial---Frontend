@@ -10,7 +10,7 @@ const nextConfig = {
     return [
       {
         source: '/api/backend/:path*',
-        destination: 'http://localhost:3030/:path*',
+        destination: 'https://controle-patrimonial-backend.vercel.app//:path*',
       },
     ]
   },
