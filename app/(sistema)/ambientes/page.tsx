@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { Search, Plus, DoorOpen, MapPin, Package, X } from 'lucide-react'
+import { MotionConfig, motion } from 'motion/react'
+import { PageLoading } from '@/components/ui/page-loading'
 import { PageHeader } from '@/components/page-header'
 import styles from './ambientes.module.css'
 import {
@@ -19,6 +21,7 @@ export default function AmbientesPage() {
   const [blocoFiltro, setBlocoFiltro] = useState('')
   const [erro, setErro] = useState('')
   const [erroBloco, setErroBloco] = useState('')
+  const [carregando, setCarregando] = useState(true)
   const [modalAberto, setModalAberto] = useState(false)
   const [modalBlocoAberto, setModalBlocoAberto] = useState(false)
   const [nome, setNome] = useState('')
@@ -28,7 +31,8 @@ export default function AmbientesPage() {
   const [salvando, setSalvando] = useState(false)
   const [salvandoBloco, setSalvandoBloco] = useState(false)
 
-  async function carregar() {
+  async function carregar(mostrarCarregamento = false) {
+    if (mostrarCarregamento) setCarregando(true)
     try {
       const [rooms, blocks] = await Promise.all([
         ambientesApi.list(),
@@ -38,11 +42,13 @@ export default function AmbientesPage() {
       setBlocos(blocks)
     } catch (error) {
       setErro(error instanceof Error ? error.message : 'Erro ao carregar ambientes')
+    } finally {
+      if (mostrarCarregamento) setCarregando(false)
     }
   }
 
   useEffect(() => {
-    carregar()
+    carregar(true)
   }, [])
 
   function fecharModal() {
@@ -115,6 +121,7 @@ export default function AmbientesPage() {
   )
 
   return (
+    <MotionConfig reducedMotion="user">
     <div>
       <PageHeader
         titulo="Ambientes"
@@ -134,56 +141,81 @@ export default function AmbientesPage() {
         }
       />
 
-      <div className={styles.filtros}>
-        <div className={styles.busca}>
-          <Search size={17} />
-          <input
-            type="text"
-            placeholder="Buscar ambiente..."
-            value={busca}
-            onChange={(e) => setBusca(e.target.value)}
-          />
-        </div>
-        <select
-          className={styles.select}
-          value={blocoFiltro}
-          onChange={(e) => setBlocoFiltro(e.target.value)}
-        >
-          <option value="">Todos os blocos</option>
-          {blocos.map((bloco) => (
-            <option key={bloco.id} value={bloco.id}>
-              Bloco {bloco.numero ?? 'sem número'}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className={styles.grid}>
-        {erro && <p style={{ color: '#b42318' }}>{erro}</p>}
-        {filtrados.map((a) => (
-          <Link
-            key={a.id}
-            href={`/patrimonios?ambienteId=${encodeURIComponent(a.id)}`}
-            className={styles.card}
+      {!carregando && (
+        <div className={styles.filtros}>
+          <div className={styles.busca}>
+            <Search size={17} />
+            <input
+              type="text"
+              placeholder="Buscar ambiente..."
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+            />
+          </div>
+          <select
+            className={styles.select}
+            value={blocoFiltro}
+            onChange={(e) => setBlocoFiltro(e.target.value)}
           >
-            <div className={styles.cardTopo}>
-              <div className={styles.icone}>
-                <DoorOpen size={20} />
-              </div>
-              <span className={styles.badge}>{a.unidades?.length ?? 0} itens</span>
-            </div>
-            <h3 className={styles.nome}>{a.nome}</h3>
-            <div className={styles.meta}>
-              <span>
-                <MapPin size={14} /> Bloco {blocos.find((b) => b.id === a.blocoId)?.numero ?? 'não informado'}
-              </span>
-              <span>
-                <Package size={14} /> {a.responsavel}
-              </span>
-            </div>
-          </Link>
-        ))}
-      </div>
+            <option value="">Todos os blocos</option>
+            {blocos.map((bloco) => (
+              <option key={bloco.id} value={bloco.id}>
+                Bloco {bloco.numero ?? 'sem número'}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {carregando ? (
+        <PageLoading variant="grid" label="Carregando ambientes" />
+      ) : (
+        <>
+          {erro && <p style={{ color: '#b42318' }}>{erro}</p>}
+          <motion.div
+            className={styles.grid}
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: 0.06 } },
+            }}
+          >
+            {filtrados.map((a) => (
+              <motion.div
+                key={a.id}
+                layout
+                variants={{
+                  hidden: { opacity: 0, y: 12 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                transition={{ duration: 0.24, ease: 'easeOut' }}
+              >
+                <Link
+                  href={`/patrimonios?ambienteId=${encodeURIComponent(a.id)}`}
+                  className={styles.card}
+                >
+                  <div className={styles.cardTopo}>
+                    <div className={styles.icone}>
+                      <DoorOpen size={20} />
+                    </div>
+                    <span className={styles.badge}>{a.unidades?.length ?? 0} itens</span>
+                  </div>
+                  <h3 className={styles.nome}>{a.nome}</h3>
+                  <div className={styles.meta}>
+                    <span>
+                      <MapPin size={14} /> Bloco {blocos.find((b) => b.id === a.blocoId)?.numero ?? 'não informado'}
+                    </span>
+                    <span>
+                      <Package size={14} /> {a.responsavel}
+                    </span>
+                  </div>
+                </Link>
+              </motion.div>
+            ))}
+          </motion.div>
+        </>
+      )}
 
       {modalAberto && (
         <div
@@ -364,5 +396,6 @@ export default function AmbientesPage() {
         </div>
       )}
     </div>
+    </MotionConfig>
   )
 }

@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { Wrench, AlertTriangle, Clock, MapPin, Plus, X } from 'lucide-react'
+import { MotionConfig, motion } from 'motion/react'
+import { PageLoading } from '@/components/ui/page-loading'
 import { PageHeader } from '@/components/page-header'
 import {
   patrimoniosApi,
@@ -14,12 +16,14 @@ import styles from './manutencao.module.css'
 export default function ManutencaoPage() {
   const [patrimonios, setPatrimonios] = useState<Patrimonio[]>([])
   const [erro, setErro] = useState('')
+  const [carregando, setCarregando] = useState(true)
   const [modalAberto, setModalAberto] = useState(false)
   const [unidadeItemId, setUnidadeItemId] = useState('')
   const [estado, setEstado] = useState<UnidadeItem['estado']>('MANUTENÇÃO')
   const [salvando, setSalvando] = useState(false)
 
   async function carregar() {
+    setCarregando(true)
     setErro('')
     try {
       setPatrimonios(await patrimoniosApi.list())
@@ -27,6 +31,8 @@ export default function ManutencaoPage() {
       setErro(
         error instanceof Error ? error.message : 'Erro ao carregar ocorrências',
       )
+    } finally {
+      setCarregando(false)
     }
   }
 
@@ -73,6 +79,7 @@ export default function ManutencaoPage() {
   }
 
   return (
+    <MotionConfig reducedMotion="user">
     <div>
       <PageHeader
         titulo="Manutenção"
@@ -92,60 +99,98 @@ export default function ManutencaoPage() {
         }
       />
 
-      {erro && <p style={{ color: '#b42318' }}>{erro}</p>}
+      {carregando ? (
+        <PageLoading variant="maintenance" label="Carregando ocorrências" />
+      ) : (
+        <>
+          {erro && <p style={{ color: '#b42318' }}>{erro}</p>}
+          <motion.section
+            className={styles.resumo}
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: 0.08 } },
+            }}
+          >
+            {resumo.map(({ label, valor, icon: Icon, cor }) => (
+              <motion.article
+                key={label}
+                className={styles.resumoCard}
+                variants={{
+                  hidden: { opacity: 0, y: 12 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+              >
+                <div className={`${styles.resumoIcon} ${cor}`}>
+                  <Icon size={20} />
+                </div>
+                <div>
+                  <p className={styles.resumoValor}>{valor}</p>
+                  <p className={styles.resumoLabel}>{label}</p>
+                </div>
+              </motion.article>
+            ))}
+          </motion.section>
 
-      <section className={styles.resumo}>
-        {resumo.map(({ label, valor, icon: Icon, cor }) => (
-          <article key={label} className={styles.resumoCard}>
-            <div className={`${styles.resumoIcon} ${cor}`}>
-              <Icon size={20} />
-            </div>
-            <div>
-              <p className={styles.resumoValor}>{valor}</p>
-              <p className={styles.resumoLabel}>{label}</p>
-            </div>
-          </article>
-        ))}
-      </section>
-
-      <div className={styles.lista}>
-        {ocorrencias.map(({ item, unidade }) => (
-          <article key={unidade.id} className={styles.card}>
-            <div className={styles.cardEsq}>
-              <div className={styles.cardTopo}>
-                <h3 className={styles.cardItem}>{item.nome}</h3>
-                <span
-                  className={`${styles.tag} ${
-                    unidade.estado === 'MANUTENÇÃO'
-                      ? styles.tagManutencao
-                      : unidade.estado === 'DANIFICADO'
-                        ? styles.tagDanificado
-                        : styles.tagExtraviado
-                  }`}
-                >
-                  {unidade.estado === 'MANUTENÇÃO'
-                    ? 'Manutenção'
-                    : unidade.estado === 'DANIFICADO'
-                      ? 'Danificado'
-                      : 'Extraviado'}
-                </span>
-              </div>
-              <p className={styles.cardDesc}>{item.descricao || 'Sem observações cadastradas.'}</p>
-              <div className={styles.cardMeta}>
-                <span className={styles.mono}>{item.tombamento}</span>
-                <span>
-                  <MapPin size={13} /> {unidade.ambiente?.nome || 'Sem ambiente'}
-                </span>
-                <span>
-                  <Clock size={13} /> Cadastrado em{' '}
-                  {new Date(item.createdAt).toLocaleDateString('pt-BR')}
-                </span>
-              </div>
-            </div>
-            <button className={styles.botaoDetalhe}>Ver detalhes</button>
-          </article>
-        ))}
-      </div>
+          <motion.div
+            className={styles.lista}
+            initial="hidden"
+            animate="visible"
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: 0.05, delayChildren: 0.2 } },
+            }}
+          >
+            {ocorrencias.map(({ item, unidade }) => (
+              <motion.article
+                key={unidade.id}
+                className={styles.card}
+                layout
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  visible: { opacity: 1, y: 0 },
+                }}
+                transition={{ duration: 0.22, ease: 'easeOut' }}
+              >
+                <div className={styles.cardEsq}>
+                  <div className={styles.cardTopo}>
+                    <h3 className={styles.cardItem}>{item.nome}</h3>
+                    <span
+                      className={`${styles.tag} ${
+                        unidade.estado === 'MANUTENÇÃO'
+                          ? styles.tagManutencao
+                          : unidade.estado === 'DANIFICADO'
+                            ? styles.tagDanificado
+                            : styles.tagExtraviado
+                      }`}
+                    >
+                      {unidade.estado === 'MANUTENÇÃO'
+                        ? 'Manutenção'
+                        : unidade.estado === 'DANIFICADO'
+                          ? 'Danificado'
+                          : 'Extraviado'}
+                    </span>
+                  </div>
+                  <p className={styles.cardDesc}>{item.descricao || 'Sem observações cadastradas.'}</p>
+                  <div className={styles.cardMeta}>
+                    <span className={styles.mono}>{item.tombamento}</span>
+                    <span>
+                      <MapPin size={13} /> {unidade.ambiente?.nome || 'Sem ambiente'}
+                    </span>
+                    <span>
+                      <Clock size={13} /> Cadastrado em{' '}
+                      {new Date(item.createdAt).toLocaleDateString('pt-BR')}
+                    </span>
+                  </div>
+                </div>
+                <button className={styles.botaoDetalhe}>Ver detalhes</button>
+              </motion.article>
+            ))}
+          </motion.div>
+        </>
+      )}
 
       {modalAberto && (
         <div
@@ -267,5 +312,6 @@ export default function ManutencaoPage() {
         </div>
       )}
     </div>
+    </MotionConfig>
   )
 }

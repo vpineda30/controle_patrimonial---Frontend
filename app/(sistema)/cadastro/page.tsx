@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Save, X } from 'lucide-react'
+import { MotionConfig, motion } from 'motion/react'
+import { PageLoading } from '@/components/ui/page-loading'
 import { PageHeader } from '@/components/page-header'
 import {
   ambientesApi,
@@ -20,6 +22,7 @@ export default function CadastroPage() {
   const [blocos, setBlocos] = useState<Bloco[]>([])
   const [blocoId, setBlocoId] = useState('')
   const [erroAmbientes, setErroAmbientes] = useState('')
+  const [carregando, setCarregando] = useState(true)
   const [form, setForm] = useState({
     nome: '',
     tombamento: '',
@@ -42,6 +45,7 @@ export default function CadastroPage() {
       .catch((error) =>
         setErroAmbientes(error instanceof Error ? error.message : 'Erro ao carregar ambientes'),
       )
+      .finally(() => setCarregando(false))
   }, [])
 
   const ambientesDoBloco = ambientes.filter((ambiente) => ambiente.blocoId === blocoId)
@@ -71,14 +75,34 @@ export default function CadastroPage() {
   }
 
   return (
+    <MotionConfig reducedMotion="user">
     <div>
       <PageHeader
         titulo="Cadastrar Item"
         descricao="Registre um novo bem adquirido pela escola e vincule-o a um ambiente."
       />
 
-      <form className={styles.form} onSubmit={submit}>
-        <section className={styles.secao}>
+      {carregando ? (
+        <PageLoading variant="form" label="Carregando dados do cadastro" />
+      ) : (
+      <motion.form
+        className={styles.form}
+        onSubmit={submit}
+        initial="hidden"
+        animate="visible"
+        variants={{
+          hidden: {},
+          visible: { transition: { staggerChildren: 0.1 } },
+        }}
+      >
+        <motion.section
+          className={styles.secao}
+          variants={{
+            hidden: { opacity: 0, y: 12 },
+            visible: { opacity: 1, y: 0 },
+          }}
+          transition={{ duration: 0.28, ease: 'easeOut' }}
+        >
           <h2 className={styles.secaoTitulo}>Identificação</h2>
           <div className={styles.linha}>
             <div className={styles.campo}>
@@ -137,9 +161,16 @@ export default function CadastroPage() {
               />
             </div>
           </div>
-        </section>
+        </motion.section>
 
-        <section className={styles.secao}>
+        <motion.section
+          className={styles.secao}
+          variants={{
+            hidden: { opacity: 0, y: 12 },
+            visible: { opacity: 1, y: 0 },
+          }}
+          transition={{ duration: 0.28, ease: 'easeOut' }}
+        >
           <h2 className={styles.secaoTitulo}>Aquisição</h2>
           <div className={styles.linha}>
             <div className={styles.campo}>
@@ -206,9 +237,16 @@ export default function CadastroPage() {
             )}
             {erroAmbientes && <small role="alert">{erroAmbientes}</small>}
           </div>
-        </section>
+        </motion.section>
 
-        <section className={styles.secao}>
+        <motion.section
+          className={styles.secao}
+          variants={{
+            hidden: { opacity: 0, y: 12 },
+            visible: { opacity: 1, y: 0 },
+          }}
+          transition={{ duration: 0.28, ease: 'easeOut' }}
+        >
           <h2 className={styles.secaoTitulo}>Observações</h2>
           <div className={styles.campo}>
             <label htmlFor="obs">Descrição e condições do item</label>
@@ -220,9 +258,16 @@ export default function CadastroPage() {
               placeholder="Informações adicionais, estado de conservação, número de série, etc."
             />
           </div>
-        </section>
+        </motion.section>
 
-        <div className={styles.acoes}>
+        <motion.div
+          className={styles.acoes}
+          variants={{
+            hidden: { opacity: 0, y: 12 },
+            visible: { opacity: 1, y: 0 },
+          }}
+          transition={{ duration: 0.28, ease: 'easeOut' }}
+        >
           <button type="button" className={styles.botaoSecundario} onClick={() => router.push('/patrimonios')}>
             <X size={17} /> Cancelar
           </button>
@@ -230,8 +275,10 @@ export default function CadastroPage() {
           <button type="submit" className={styles.botaoPrimario} disabled={salvando}>
             <Save size={17} /> {salvando ? 'Salvando...' : 'Salvar item'}
           </button>
-        </div>
-      </form>
+        </motion.div>
+      </motion.form>
+      )}
     </div>
+    </MotionConfig>
   )
 }
