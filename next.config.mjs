@@ -10,7 +10,7 @@ const nextConfig = {
     return [
       {
         source: '/api/backend/:path*',
-        destination: 'https://controle-patrimonial-backend.vercel.app//:path*',
+        destination: 'https://controle-patrimonial-backend-production.up.railway.app//:path*',
       },
     ]
   },
