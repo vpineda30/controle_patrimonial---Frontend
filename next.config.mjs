@@ -10,7 +10,8 @@ const nextConfig = {
     return [
       {
         source: '/api/backend/:path*',
-        destination: 'https://controle-patrimonial-backend-production.up.railway.app/:path*',
+        // destination: 'https://controle-patrimonial-backend-production.up.railway.app/:path*',
+        destination: 'http://localhost:3030/:path*',
       },
     ]
   },

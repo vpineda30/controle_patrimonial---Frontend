@@ -80,6 +80,30 @@ function getToken() {
   return localStorage.getItem('auth_token')
 }
 
+function getErrorMessage(data: unknown): string | null {
+  if (typeof data === 'string') {
+    const message = data.trim()
+    return message && !message.startsWith('<') ? message : null
+  }
+
+  if (Array.isArray(data)) {
+    const messages = data
+      .map(getErrorMessage)
+      .filter((message): message is string => message !== null)
+    return messages.length ? messages.join(', ') : null
+  }
+
+  if (typeof data === 'object' && data !== null) {
+    const payload = data as Record<string, unknown>
+    for (const key of ['message', 'error', 'detail', 'errors', 'error_description']) {
+      const message = getErrorMessage(payload[key])
+      if (message) return message
+    }
+  }
+
+  return null
+}
+
 export async function api<T>(
   path: string,
   options: RequestInit = {},
@@ -104,10 +128,16 @@ export async function api<T>(
   }
 
   if (!response.ok) {
-    const message =
-      typeof data === 'object' && data && 'message' in data
-        ? String((data as { message: unknown }).message)
-        : `Erro ${response.status}`
+    const backendMessage = getErrorMessage(data)
+    const isGenericMessage =
+      !backendMessage ||
+      backendMessage === `Erro ${response.status}` ||
+      backendMessage.toLowerCase() === 'internal server error'
+    const isLoginFailure =
+      path === '/login' && [401, 500].includes(response.status) && isGenericMessage
+    const message = isLoginFailure
+      ? 'E-mail ou senha inválidos.'
+      : backendMessage ?? `Erro ${response.status}`
     throw new Error(message)
   }
 
