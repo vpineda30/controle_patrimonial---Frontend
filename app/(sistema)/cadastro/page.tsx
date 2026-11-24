@@ -1,14 +1,21 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Save, X } from 'lucide-react'
 import { PageHeader } from '@/components/page-header'
-import { patrimoniosApi, type CriarPatrimonio } from '@/lib/api'
+import {
+  ambientesApi,
+  patrimoniosApi,
+  type Ambiente,
+  type CriarPatrimonio,
+} from '@/lib/api'
 import styles from './cadastro.module.css'
 
 export default function CadastroPage() {
   const router = useRouter()
+  const [ambientes, setAmbientes] = useState<Ambiente[]>([])
+  const [erroAmbientes, setErroAmbientes] = useState('')
   const [form, setForm] = useState({
     nome: '',
     tombamento: '',
@@ -16,10 +23,20 @@ export default function CadastroPage() {
     marca: '',
     valor: '',
     quantidade: '1',
+    ambienteId: '',
     descricao: '',
   })
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
+
+  useEffect(() => {
+    ambientesApi
+      .list()
+      .then(setAmbientes)
+      .catch((error) =>
+        setErroAmbientes(error instanceof Error ? error.message : 'Erro ao carregar ambientes'),
+      )
+  }, [])
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -33,6 +50,7 @@ export default function CadastroPage() {
         marca: form.marca,
         valor: Number(form.valor),
         quantidade: Number(form.quantidade),
+        ambienteId: form.ambienteId || null,
         descricao: form.descricao || null,
       }
       await patrimoniosApi.create(payload)
@@ -140,6 +158,23 @@ export default function CadastroPage() {
                 placeholder="0,00"
               />
             </div>
+          </div>
+          <div className={styles.campo}>
+            <label htmlFor="ambiente">Ambiente inicial (opcional)</label>
+            <select
+              id="ambiente"
+              value={form.ambienteId}
+              onChange={(e) => setForm({ ...form, ambienteId: e.target.value })}
+            >
+              <option value="">Sem localização (atribuir depois)</option>
+              {ambientes.map((ambiente) => (
+                <option key={ambiente.id} value={ambiente.id}>
+                  {ambiente.nome}
+                </option>
+              ))}
+            </select>
+            <small>As unidades da quantidade informada serão vinculadas a este ambiente.</small>
+            {erroAmbientes && <small role="alert">{erroAmbientes}</small>}
           </div>
         </section>
 

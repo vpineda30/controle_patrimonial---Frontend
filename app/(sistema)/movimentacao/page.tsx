@@ -13,16 +13,59 @@ import {
 } from '@/lib/api'
 import styles from './movimentacao.module.css'
 
+const SEM_LOCALIZACAO = '__sem-localizacao__'
+
+type SaldoAmbiente = {
+  id: string
+  ambienteId: string | null
+  nome: string
+  quantidade: number
+}
+
+function dataHoraLocalMinima() {
+  const agora = new Date()
+  agora.setMinutes(agora.getMinutes() - agora.getTimezoneOffset())
+  return agora.toISOString().slice(0, 16)
+}
+
+function obterSaldos(item?: Patrimonio): SaldoAmbiente[] {
+  if (!item) return []
+
+  const saldos = new Map<string, SaldoAmbiente>()
+  for (const unidade of item.unidades ?? []) {
+    const id = unidade.ambienteId ?? SEM_LOCALIZACAO
+    const saldo = saldos.get(id)
+    if (saldo) {
+      saldo.quantidade += 1
+    } else {
+      saldos.set(id, {
+        id,
+        ambienteId: unidade.ambienteId,
+        nome: unidade.ambiente?.nome ?? 'Sem localização',
+        quantidade: 1,
+      })
+    }
+  }
+
+  return Array.from(saldos.values())
+}
+
 export default function MovimentacaoPage() {
   const [historico, setHistorico] = useState<Movimentacao[]>([])
   const [patrimonios, setPatrimonios] = useState<Patrimonio[]>([])
   const [ambientes, setAmbientes] = useState<Ambiente[]>([])
-  const [unidadeItemId, setUnidadeItemId] = useState('')
-  const [origem, setOrigem] = useState('')
-  const [destino, setDestino] = useState('')
+  const [itemId, setItemId] = useState('')
+  const [origemId, setOrigemId] = useState('')
+  const [destinoId, setDestinoId] = useState('')
+  const [quantidade, setQuantidade] = useState('1')
+  const [expiraEm, setExpiraEm] = useState('')
   const [resp, setResp] = useState('')
   const [erro, setErro] = useState('')
   const [salvando, setSalvando] = useState(false)
+
+  const itemSelecionado = patrimonios.find((item) => item.id === itemId)
+  const saldos = obterSaldos(itemSelecionado)
+  const saldoOrigem = saldos.find((saldo) => saldo.id === origemId)
 
   async function carregar() {
     try {
@@ -43,28 +86,48 @@ export default function MovimentacaoPage() {
     carregar()
   }, [])
 
-  function selecionarUnidade(id: string) {
-    setUnidadeItemId(id)
-    const unidade = patrimonios
-      .flatMap((item) => item.unidades ?? [])
-      .find((candidate) => candidate.id === id)
-    setOrigem(unidade?.ambiente?.nome ?? '')
+  function selecionarItem(id: string) {
+    const item = patrimonios.find((atual) => atual.id === id)
+    const saldosDoItem = obterSaldos(item)
+    setItemId(id)
+    setOrigemId(saldosDoItem[0]?.id ?? '')
+    setDestinoId('')
+    setQuantidade('1')
   }
 
-  async function registrar(e: React.FormEvent) {
-    e.preventDefault()
+  async function registrar(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
     setErro('')
+
+    const quantidadeNumerica = Number(quantidade)
+    if (!saldoOrigem || !Number.isSafeInteger(quantidadeNumerica) ||
+      quantidadeNumerica < 1 || quantidadeNumerica > saldoOrigem.quantidade) {
+      setErro('Informe uma quantidade disponível no ambiente de origem.')
+      return
+    }
+
+    const dataExpiracao = new Date(expiraEm)
+    if (!expiraEm || Number.isNaN(dataExpiracao.getTime()) ||
+      dataExpiracao.getTime() <= Date.now()) {
+      setErro('Informe uma data e hora de expiração futuras.')
+      return
+    }
+
     setSalvando(true)
     try {
       await movimentacoesApi.create({
-        unidadeItemId,
-        origem,
-        destino,
+        itemId,
+        origemAmbienteId: saldoOrigem.ambienteId,
+        destinoAmbienteId: destinoId,
+        quantidade: quantidadeNumerica,
         resp,
+        expiresAt: dataExpiracao.toISOString(),
       })
-      setUnidadeItemId('')
-      setOrigem('')
-      setDestino('')
+      setItemId('')
+      setOrigemId('')
+      setDestinoId('')
+      setQuantidade('1')
+      setExpiraEm('')
       setResp('')
       await carregar()
     } catch (error) {
@@ -78,7 +141,7 @@ export default function MovimentacaoPage() {
     <div>
       <PageHeader
         titulo="Movimentação"
-        descricao="Registre a transferência de um item entre ambientes, com baixa na origem e entrada no destino."
+        descricao="Transfira uma quantidade de itens entre ambientes."
       />
 
       <div className={styles.layout}>
@@ -90,18 +153,19 @@ export default function MovimentacaoPage() {
             <select
               id="item"
               required
-              value={unidadeItemId}
-              onChange={(e) => selecionarUnidade(e.target.value)}
+              value={itemId}
+              onChange={(event) => selecionarItem(event.target.value)}
             >
-              <option value="" disabled>Selecione uma unidade</option>
-              {patrimonios.flatMap((item) =>
-                (item.unidades ?? []).map((unidade) => (
-                  <option key={unidade.id} value={unidade.id}>
-                    {item.tombamento} - {item.nome}
-                  </option>
-                )),
-              )}
+              <option value="" disabled>Selecione um item</option>
+              {patrimonios.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.tombamento} - {item.nome}
+                </option>
+              ))}
             </select>
+            {itemSelecionado && saldos.length === 0 && (
+              <small>Este item não possui unidades registradas para movimentar.</small>
+            )}
           </div>
 
           <div className={styles.trajeto}>
@@ -110,15 +174,18 @@ export default function MovimentacaoPage() {
               <select
                 id="origem"
                 required
-                value={origem}
-                onChange={(e) => setOrigem(e.target.value)}
+                value={origemId}
+                onChange={(event) => {
+                  setOrigemId(event.target.value)
+                  setDestinoId('')
+                  setQuantidade('1')
+                }}
+                disabled={!itemSelecionado || saldos.length === 0}
               >
-                <option value="" disabled>
-                  Ambiente atual...
-                </option>
-                {ambientes.map((ambiente) => (
-                  <option key={ambiente.id} value={ambiente.nome}>
-                    {ambiente.nome}
+                <option value="" disabled>Selecione a origem</option>
+                {saldos.map((saldo) => (
+                  <option key={saldo.id} value={saldo.id}>
+                    {saldo.nome} ({saldo.quantidade} disponíveis)
                   </option>
                 ))}
               </select>
@@ -131,19 +198,51 @@ export default function MovimentacaoPage() {
               <select
                 id="destino"
                 required
-                value={destino}
-                onChange={(e) => setDestino(e.target.value)}
+                value={destinoId}
+                onChange={(event) => setDestinoId(event.target.value)}
+                disabled={!saldoOrigem}
               >
-                <option value="" disabled>
-                  Novo ambiente...
-                </option>
-                {ambientes.map((ambiente) => (
-                  <option key={ambiente.id} value={ambiente.nome}>
-                    {ambiente.nome}
-                  </option>
-                ))}
+                <option value="" disabled>Novo ambiente...</option>
+                {ambientes
+                  .filter((ambiente) => ambiente.id !== saldoOrigem?.ambienteId)
+                  .map((ambiente) => (
+                    <option key={ambiente.id} value={ambiente.id}>
+                      {ambiente.nome}
+                    </option>
+                  ))}
               </select>
             </div>
+          </div>
+
+          <div className={styles.campo}>
+            <label htmlFor="quantidade">Quantidade a transferir</label>
+            <input
+              id="quantidade"
+              type="number"
+              min="1"
+              max={saldoOrigem?.quantidade}
+              step="1"
+              required
+              value={quantidade}
+              onChange={(event) => setQuantidade(event.target.value)}
+              disabled={!saldoOrigem}
+            />
+            {saldoOrigem && (
+              <small>{saldoOrigem.quantidade} unidade(s) disponíveis na origem.</small>
+            )}
+          </div>
+
+          <div className={styles.campo}>
+            <label htmlFor="expiraEm">Data e hora de expiração</label>
+            <input
+              id="expiraEm"
+              type="datetime-local"
+              min={dataHoraLocalMinima()}
+              required
+              value={expiraEm}
+              onChange={(event) => setExpiraEm(event.target.value)}
+            />
+            <small>Após esse horário, a movimentação deixa de aparecer no histórico.</small>
           </div>
 
           <div className={styles.campo}>
@@ -153,13 +252,17 @@ export default function MovimentacaoPage() {
               type="text"
               required
               value={resp}
-              onChange={(e) => setResp(e.target.value)}
+              onChange={(event) => setResp(event.target.value)}
               placeholder="Nome do responsável"
             />
           </div>
 
-          {erro && <p style={{ color: '#b42318', margin: 0 }}>{erro}</p>}
-          <button type="submit" className={styles.botaoPrimario} disabled={salvando}>
+          {erro && <p role="alert" style={{ color: '#b42318', margin: 0 }}>{erro}</p>}
+          <button
+            type="submit"
+            className={styles.botaoPrimario}
+            disabled={salvando || !itemId || !saldoOrigem || !destinoId}
+          >
             <Check size={17} /> {salvando ? 'Registrando...' : 'Confirmar movimentação'}
           </button>
         </form>
@@ -167,21 +270,25 @@ export default function MovimentacaoPage() {
         <section className={styles.historico}>
           <h2 className={styles.histTitulo}>Histórico recente</h2>
           <ul className={styles.timeline}>
-            {historico.map((h) => (
-              <li key={h.id} className={styles.evento}>
+            {historico.map((movimentacao) => (
+              <li key={movimentacao.id} className={styles.evento}>
                 <div className={styles.ponto} />
                 <div className={styles.eventoBody}>
                   <div className={styles.eventoTopo}>
-                    <span className={styles.eventoItem}>{h.unidadeItem.item.nome}</span>
+                    <span className={styles.eventoItem}>{movimentacao.item.nome}</span>
                     <span className={styles.eventoData}>
-                      {new Date(h.dataMovimentacao).toLocaleDateString('pt-BR')}
+                      {new Date(movimentacao.dataMovimentacao).toLocaleDateString('pt-BR')}
                     </span>
                   </div>
                   <p className={styles.trajetoTexto}>
-                    {h.origem} <ArrowRight size={13} /> {h.destino}
+                    {movimentacao.origem} <ArrowRight size={13} /> {movimentacao.destino}
                   </p>
                   <p className={styles.eventoMeta}>
-                    <span className={styles.mono}>{h.unidadeItem.item.tombamento}</span> · {h.resp}
+                    <span className={styles.mono}>{movimentacao.item.tombamento}</span>
+                    {' · '}{movimentacao.quantidade} unidade(s) · {movimentacao.resp}
+                    {' · '}Expira em {movimentacao.expiresAt
+                      ? new Date(movimentacao.expiresAt).toLocaleString('pt-BR')
+                      : 'Sem vencimento'}
                   </p>
                 </div>
               </li>

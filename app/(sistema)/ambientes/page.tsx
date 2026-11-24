@@ -18,11 +18,15 @@ export default function AmbientesPage() {
   const [busca, setBusca] = useState('')
   const [blocoFiltro, setBlocoFiltro] = useState('')
   const [erro, setErro] = useState('')
+  const [erroBloco, setErroBloco] = useState('')
   const [modalAberto, setModalAberto] = useState(false)
+  const [modalBlocoAberto, setModalBlocoAberto] = useState(false)
   const [nome, setNome] = useState('')
   const [responsavel, setResponsavel] = useState('')
   const [blocoId, setBlocoId] = useState('')
+  const [numeroBloco, setNumeroBloco] = useState('')
   const [salvando, setSalvando] = useState(false)
+  const [salvandoBloco, setSalvandoBloco] = useState(false)
 
   async function carregar() {
     try {
@@ -67,6 +71,36 @@ export default function AmbientesPage() {
       setErro(error instanceof Error ? error.message : 'Erro ao criar ambiente')
     } finally {
       setSalvando(false)
+    }
+  }
+
+  function fecharModalBloco() {
+    if (salvandoBloco) return
+    setModalBlocoAberto(false)
+    setErroBloco('')
+  }
+
+  async function criarBloco(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setErroBloco('')
+
+    const numero = numeroBloco.trim() ? Number(numeroBloco) : null
+    if (numero !== null && (!Number.isSafeInteger(numero) || numero < 1)) {
+      setErroBloco('Informe um número inteiro maior que zero.')
+      return
+    }
+
+    setSalvandoBloco(true)
+    try {
+      const bloco = await blocosApi.create(numero)
+      setBlocos((atuais) => [...atuais, bloco])
+      setBlocoId(bloco.id)
+      setNumeroBloco('')
+      setModalBlocoAberto(false)
+    } catch (error) {
+      setErroBloco(error instanceof Error ? error.message : 'Erro ao criar bloco')
+    } finally {
+      setSalvandoBloco(false)
     }
   }
 
@@ -129,7 +163,7 @@ export default function AmbientesPage() {
         {filtrados.map((a) => (
           <Link
             key={a.id}
-            href="/patrimonios"
+            href={`/patrimonios?ambienteId=${encodeURIComponent(a.id)}`}
             className={styles.card}
           >
             <div className={styles.cardTopo}>
@@ -205,9 +239,10 @@ export default function AmbientesPage() {
                 />
               </label>
 
-              <label className={styles.modalCampo}>
-                <span>Bloco</span>
+              <div className={styles.modalCampo}>
+                <label htmlFor="ambiente-bloco">Bloco</label>
                 <select
+                  id="ambiente-bloco"
                   required
                   value={blocoId}
                   onChange={(event) => setBlocoId(event.target.value)}
@@ -224,7 +259,17 @@ export default function AmbientesPage() {
                 {blocos.length === 0 && (
                   <small>Nenhum bloco cadastrado. Cadastre um bloco antes de criar o ambiente.</small>
                 )}
-              </label>
+                <button
+                  type="button"
+                  className={styles.linkCadastro}
+                  onClick={() => {
+                    setErroBloco('')
+                    setModalBlocoAberto(true)
+                  }}
+                >
+                  <Plus size={14} /> Cadastrar novo bloco
+                </button>
+              </div>
 
               {erro && <p className={styles.modalErro}>{erro}</p>}
 
@@ -243,6 +288,75 @@ export default function AmbientesPage() {
                   disabled={salvando || blocos.length === 0}
                 >
                   {salvando ? 'Salvando...' : 'Criar ambiente'}
+                </button>
+              </footer>
+            </form>
+          </section>
+        </div>
+      )}
+
+      {modalBlocoAberto && (
+        <div
+          className={styles.modalOverlay}
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) fecharModalBloco()
+          }}
+        >
+          <section
+            className={styles.modal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="novo-bloco-titulo"
+          >
+            <header className={styles.modalHeader}>
+              <div>
+                <h2 id="novo-bloco-titulo">Novo bloco</h2>
+                <p>Informe o número do bloco que será cadastrado.</p>
+              </div>
+              <button
+                type="button"
+                className={styles.modalFechar}
+                onClick={fecharModalBloco}
+                disabled={salvandoBloco}
+                aria-label="Fechar modal"
+              >
+                <X size={20} />
+              </button>
+            </header>
+
+            <form className={styles.modalForm} onSubmit={criarBloco}>
+              <label className={styles.modalCampo}>
+                <span>Número do bloco</span>
+                <input
+                  autoFocus
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={numeroBloco}
+                  onChange={(event) => setNumeroBloco(event.target.value)}
+                  placeholder="Ex.: 1"
+                />
+                <small>Opcional. Deixe em branco para cadastrar sem número.</small>
+              </label>
+
+              {erroBloco && <p className={styles.modalErro}>{erroBloco}</p>}
+
+              <footer className={styles.modalAcoes}>
+                <button
+                  type="button"
+                  className={styles.modalCancelar}
+                  onClick={fecharModalBloco}
+                  disabled={salvandoBloco}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className={styles.botaoPrimario}
+                  disabled={salvandoBloco}
+                >
+                  {salvandoBloco ? 'Salvando...' : 'Criar bloco'}
                 </button>
               </footer>
             </form>

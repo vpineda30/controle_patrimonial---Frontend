@@ -48,16 +48,14 @@ export type Patrimonio = {
 
 export type Movimentacao = {
   id: string
-  unidadeItemId: string
+  itemId: string
   origem: string
   destino: string
+  quantidade: number
   resp: string
   dataMovimentacao: string
-  unidadeItem: {
-    id: string
-    item: Patrimonio
-    ambiente: Ambiente | null
-  }
+  expiresAt: string | null
+  item: Patrimonio
 }
 
 export type CriarPatrimonio = {
@@ -74,6 +72,7 @@ export type CriarPatrimonio = {
     | 'ESPORTE'
   marca: string
   quantidade: number
+  ambienteId?: string | null
 }
 
 function getToken() {
@@ -208,10 +207,12 @@ export const movimentacoesApi = {
   list: () => api<Movimentacao[]>('/movimentacoes'),
   get: (id: string) => api<Movimentacao>(`/movimentacoes/${id}`),
   create: (data: {
-    unidadeItemId: string
-    origem: string
-    destino: string
+    itemId: string
+    origemAmbienteId: string | null
+    destinoAmbienteId: string
+    quantidade: number
     resp: string
+    expiresAt: string
   }) =>
     api<Movimentacao>('/movimentacoes', {
       method: 'POST',

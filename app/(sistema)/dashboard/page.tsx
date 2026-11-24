@@ -64,7 +64,7 @@ export default function DashboardPage() {
   const indicadores = [
     { label: 'Total de patrimônios', valor: totalUnidades, detalhe: `${patrimonios.length} tipos cadastrados`, icon: Package },
     { label: 'Ambientes mapeados', valor: ambientes.length, detalhe: `${blocos.length} blocos`, icon: DoorOpen },
-    { label: 'Movimentações', valor: movimentacoes.length, detalhe: 'registro total', icon: ArrowLeftRight },
+    { label: 'Movimentações', valor: movimentacoes.length, detalhe: 'não expiradas', icon: ArrowLeftRight },
     { label: 'Em manutenção', valor: emSituacao, detalhe: 'itens com situação especial', icon: Wrench },
   ]
   const ocupacao = ambientes
@@ -121,20 +121,28 @@ export default function DashboardPage() {
                 <tr>
                   <th>Item</th>
                   <th>Tombamento</th>
+                  <th>Quantidade</th>
                   <th>Origem</th>
                   <th>Destino</th>
                   <th>Data</th>
+                  <th>Expira em</th>
                 </tr>
               </thead>
               <tbody>
                 {movimentacoes.slice(0, 5).map((m) => (
                   <tr key={m.id}>
-                    <td className={styles.itemNome}>{m.unidadeItem.item.nome}</td>
-                    <td className={styles.mono}>{m.unidadeItem.item.tombamento}</td>
+                    <td className={styles.itemNome}>{m.item.nome}</td>
+                    <td className={styles.mono}>{m.item.tombamento}</td>
+                    <td>{m.quantidade}</td>
                     <td>{m.origem}</td>
                     <td>{m.destino}</td>
                     <td className={styles.data}>
                       {new Date(m.dataMovimentacao).toLocaleDateString('pt-BR')}
+                    </td>
+                    <td className={styles.data}>
+                      {m.expiresAt
+                        ? new Date(m.expiresAt).toLocaleString('pt-BR')
+                        : 'Sem vencimento'}
                     </td>
                   </tr>
                 ))}
